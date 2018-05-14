@@ -1,0 +1,137 @@
+---
+title: "Finding the discrepancy"
+author: "Saurabh"
+date: "January 19, 2018"
+output: html_document
+---
+
+
+```{r}
+id1 %>%
+  select(code) %>%
+  intersect(id2 %>%
+              select(code))
+```
+36751 HH which are Intact as well as Split with HH "1" and Replaced HH "9"
+
+Verifying that only Split Id has been included in the data!
+```{r}
+id2 %>%
+  filter(HHSPLITID == 9) %>%
+  select(HHSPLITID) %>%
+  sum()
+19206/2134    #The average comes to 9!!! No discrepancy in HHSPLITID as "9"
+```
+
+
+Tallying the frequency of each code under SplitID "9" 
+```{r}
+table09 <- id2 %>%
+  filter(HHSPLITID == 9) %>%
+  select(code) %>%
+  table()
+
+table09 <- tbl_df(table09)
+
+
+table09
+```
+
+
+```{r}
+names(table09) <- c("code", "freq")
+table09$code <- as.numeric(table09$code)
+
+table(table09$freq)
+```
+No discrepancy here!
+
+Getting the intersect of codes with IHDS1
+```{r}
+id1 %>%
+  select(code) %>%
+  intersect(table09 %>%
+              select(code))
+```
+###Voila!!!
+So here, we get 2108 as the HH from IHDS1 which were replaced later in IHDS2. But there's a deficit of 26 observations.
+See below....
+
+```{r}
+code09 <- id2 %>%
+  filter(HHSPLITID == 9) %>%
+  select(code)
+
+code09
+```
+
+#Now I wish to find the deficit of 26HHs!
+```{r}
+discrepancy <- id1 %>%
+  select(code) %>%
+  intersect(table09 %>%
+              select(code))
+
+discrepancy
+```
+
+```{r}
+code09_i <- which(id2$HHSPLITID == 9)
+head(id2$code[code09_i])
+code09_base <- id2$code[code09_i]
+class(code09_base)
+length(code09_base)
+
+```
+2134, Perfect!
+
+```{r}
+code_09_base2 <- tbl_df(code09_base)
+names(code_09_base2) <- "code"
+
+diff_discrepancy <- setdiff(code_09_base2, discrepancy)
+diff_discrepancy
+```
+So now we get the difference between IHDS1 and IHDS2 for SPLITID "9"
+
+Checking the HH in Rajasthan "08" and DistId "26". In both IHDS1 and IHDS2
+```{r}
+id1 %>%
+  filter(sid == 08, DISTID == 26)
+```
+```{r}
+id2 %>%
+  filter(sid == 08, DISTID == 26)
+```
+
+What we've found out is that an altogether new replacement HH id was created in IHDS 2 see 82607111 (Not present in IHDS1)
+
+Checking for Next observation:91006100, 160005240
+First 91006100:
+
+```{r}
+id1 %>%
+  filter(sid == 09, DISTID == 10)
+```
+There's no HHID 10!
+
+```{r}
+id2 %>%
+  filter(sid == 09, DISTID == 10)
+```
+
+160005240
+```{r}
+id1 %>%
+  filter(sid == 16, DISTID == 0)
+```
+Can't find 240!, we can see that HH 24 was coded as "1" for HHSPLITID, mostly an error... But we shall exclude it from the data.. :)
+```{r}
+id2 %>%
+  filter(sid == 16, DISTID == 0)
+```
+
+Conclusion:
+So we found out that 26 observations from IHDS 1 are not matching with Survey 2 for Replaced HH's
+Is this the reason why we're getting SURPLUS of 26? Isn't it supposed to be a deficit?
+

@@ -1,0 +1,312 @@
+---
+title: "Weights2"
+author: "Saurabh"
+date: "February 27, 2018"
+output: html_document
+---
+Including npersons in both the data sets
+Packages to be considered...
+```{r}
+require(dplyr)
+require(ggplot2)
+```
+
+
+```{r}
+co2_data <- tbl_df(co2_data)
+```
+
+npersons
+```{r}
+co_qty1 <- co_data4 %>%
+  bind_cols(hhx_new1 %>%
+              select(npersons))
+
+co_qty2 <- co2_data %>%
+  bind_cols(hhy_new1 %>%
+              select(npersons))
+
+co_qty2 <- co_qty2[,names(co_qty1)] #Reordering the variables
+
+co_qty1
+co_qty2
+```
+
+```{r}
+per_capita_qty <- function(x) {
+    if (any(x!= 0)) {
+    npersons <- x[,12] 
+    op <- x/npersons
+  } else {
+    next
+  }
+  dt <- op
+  print(dt)
+}
+```
+
+```{r}
+qty_pc1 <- per_capita_qty(data.frame(co_qty1))
+qty_pc1 <- tbl_df(qty_pc1)
+
+qty_pc2 <- per_capita_qty(data.frame(co_qty2))
+qty_pc2 <- tbl_df(qty_pc2)
+```
+Checking whether the above function has worked well
+
+```{r}
+unique(qty_pc1$npersons)
+unique(qty_pc2$npersons)
+```
+wgts
+```{r}
+tot_pc1 <- qty_pc1 %>%
+  transmute(wgt1a = co1a * 0.20, wgt2a = co2a * 0.10, wgt3a = co3a * 0.20, wgt4a = co4a * 0.82 * 0.10, wgt5a = co5a * 0.03, wgt7a = co7a * 0.10, wgt8a = co8a * 0.03, wgt9a = co9a * 0.03, wgt10a = co10a * 0.10, wgt11a = co11a * 0.01, wgt12a = co12a * 0.10) %>%
+  mutate(wgt_totpc1 = wgt1a+ wgt2a + wgt3a + wgt4a + wgt5a + wgt7a + wgt8a + wgt9a + wgt10a + wgt11a + wgt12a) %>%
+  select(wgt_totpc1)
+tot_pc1
+```
+
+```{r}
+tot_pc2 <- qty_pc2 %>%
+  transmute(wgt1a = co1a * 0.20, wgt2a = co2a * 0.10, wgt3a = co3a * 0.20, wgt4a = co4a * 0.82 * 0.10, wgt5a = co5a * 0.03, wgt7a = co7a * 0.10, wgt8a = co8a * 0.03, wgt9a = co9a * 0.03, wgt10a = co10a * 0.10, wgt11a = co11a * 0.01, wgt12a = co12a * 0.10) %>%
+  mutate(wgt_totpc2 = wgt1a+ wgt2a + wgt3a + wgt4a + wgt5a + wgt7a + wgt8a + wgt9a + wgt10a + wgt11a + wgt12a) %>%
+  select(wgt_totpc2)
+tot_pc2
+```
+
+Getting the diff
+```{r}
+wgts <- hhy_new1 %>%
+  select(code, stateid, nrega, poor, jcardapp) %>%
+  bind_cols(tot_pc1, tot_pc2) %>%
+  mutate(wgt_diff = wgt_totpc2 - wgt_totpc1)
+wgts <- tbl_df(wgts)
+wgts
+```
+
+Checking Positive/Negative values
+```{r}
+table(HH_with_increased_consumption = wgts$wgt_diff > 0)
+
+#wrt Nrega
+table(nrega = wgts$nrega, HH_with_increased_consumption = wgts$wgt_diff > 0)
+
+#wrt poor/nonpoor
+table(poor = wgts$poor, HH_with_increased_consumption = wgts$wgt_diff > 0)
+```
+
+```{r}
+success <- wgts %>%
+  filter(wgt_diff > 0) %>%
+  select(stateid, wgt_diff) %>%
+  group_by(stateid) %>%
+  summarise(med_qty = round(median(wgt_diff), 2)) %>%
+  right_join(wgts, by = "stateid") %>%
+  mutate(qty_success = ifelse(wgt_diff > med_qty, 1, 0))
+success
+```
+
+Checking how many HHs showed significant growth
+```{r}
+table(qty_succeeded_HHs = success$qty_success)
+
+table(nrega = success$nrega, qty_succeeded_HHs = success$qty_success)
+
+table(poor = success$poor, qty_succeeded_HHs = success$qty_success)
+```
+
+Understading success according to states
+```{r}
+state_success <- table(states = success$stateid, qty_succeeded_HHs = success$qty_success)
+state_success
+prop.table(state_success, 1)
+```
+
+Now considering Expenditure, 
+```{r}
+wgts <- wgts %>%
+  bind_cols(exp_tot1, exp_tot2) %>%
+  mutate(exp_diff = exp_tot2 - exp_tot1)
+wgts
+```
+
+Checking no. of HH with increase in consumption expenditure
+```{r}
+table(HH_with_increased_expenditure = wgts$exp_diff > 0)
+
+#wrt Nrega
+table(nrega = wgts$nrega, HH_with_increased_expenditure = wgts$exp_diff > 0)
+
+#wrt poor/nonpoor
+table(poor = wgts$poor, HH_with_increased_expenditure = wgts$exp_diff > 0)
+```
+
+```{r}
+success <- success %>%
+  bind_cols(wgts %>%
+              select(code, exp_tot1, exp_tot2, exp_diff))
+success <- wgts[-exp_outliers,] %>%
+  filter(exp_diff > 0) %>%
+  select(stateid, exp_diff) %>%
+  group_by(stateid) %>%
+  summarise(med_exp = round(median(exp_diff), 2)) %>%
+  right_join(success, by = "stateid") %>%
+  mutate(exp_success = ifelse(exp_diff > med_exp, 1, 0))
+success
+```
+
+Understanding total HH which succeeded wrt expenditure
+```{r}
+table(exp_succeeded_HHs = success$exp_success)
+
+table(nrega = success$nrega, exp_succeeded_HHs = success$exp_success)
+
+table(poor = success$poor, exp_succeeded_HHs = success$exp_success)
+```
+
+
+
+Understanding expenditure wise succeeded HH
+```{r}
+state_success_exp <- table(states = success$stateid, exp_succeeded_HHs = success$exp_success)
+state_success_exp
+prop.table(state_success_exp, 1)
+```
+
+Adding Deflator variable
+```{r}
+hhy_new1 <- hhy_new1 %>%
+  left_join(hh2 %>%
+              semi_join(hhy_new1, by = "code") %>%
+              select(deflator, code), by = "code")
+```
+
+using variables copc1 & copc2 to get corrected expenditure wrt deflator
+```{r}
+glimpse(copc1)
+glimpse(copc2)
+```
+
+```{r}
+copc2_def <- copc2 %>%
+  bind_cols(hhy_new1 %>%
+              select(deflator))
+
+deflate <- function(x) {
+    if (any(x!= 0.00)) {
+    deflator <- x[,35] 
+    op <- x*deflator
+  } else {
+    next
+  }
+  dt <- op
+  print(dt)
+}
+
+deflate(copc2_def)
+```
+
+```{r}
+corrected_exp_tot2 <- copc2 %>%
+  transmute(wgt15 = co15 * 0.20, wgt16 = co16 * 0.20, wgt17 = co17 * 0.10, wgt18 = co18 * 0.10, wgt19 = co19 * 0.01, wgt20 = co20 * 0.20, wgt21 = co21 * 0.01, wgt22 = co22 * 0.10, wgt23 = co23 * 0.03, wgt24 = co24 * 0.20, wgt25 = co25 * 0.20, wgt26 = co26 * 0.10, wgt27 = co27 * 0.01, wgt28 = co28 * 0.01, wgt29 = co29 * 0.03, wgt30 = co30 * 0.10, wgt31 = co31 * 0.03, wgt32 = co32 * 0.10, wgt33 = co33 * 0.10, wgt34 = co34 * 0.20, wgt35 = co35 * 0.20, wgt36 = co36 * 0.01, wgt37 = co37 * 0.03, wgt38 = co38 * 0.01, wgt39 = co39 * 0.01, wgt40 = co40 * 0.01,wgt41 = co41 * 0.03, wgt42 = co42 * 0.01, wgt43 = co43 * 0.01, wgt44 = co44 * 0.01, wgt45 = co45 * 0.01, wgt46 = co46 * 0.01 ,wgt47 = co47 * 0.20) %>%
+  mutate(corrected_exp_tot2 = wgt15+ wgt16 + wgt17 + wgt18 + wgt19 + wgt20 + wgt21 + wgt22 + wgt23 + wgt24 + wgt25 + wgt26 + wgt27 + wgt28 + wgt29 + wgt30 + wgt31 + wgt32 + wgt33 + wgt34 + wgt35 + wgt36 + wgt37 + wgt38 + wgt39 + wgt40 + wgt41 + wgt42 + wgt43 + wgt44 + wgt45 + wgt46 + wgt47) %>%
+  select(corrected_exp_tot2)
+corrected_exp_tot2
+  
+```
+
+```{r}
+wgts <- wgts %>%
+  bind_cols(corrected_exp_tot2) 
+
+wgts$corrected_exp_diff <- wgts$corrected_exp_tot2 - wgts$exp_tot1
+wgts
+```
+
+```{r}
+table(hh_with_increased_expenditure = wgts$corrected_exp_diff>0)
+
+table(nrega = wgts$nrega, hh_with_increased_expenditure = wgts$corrected_exp_diff>0)
+
+table(poor = wgts$poor, hh_with_increased_expenditure = wgts$corrected_exp_diff>0)
+
+```
+
+```{r}
+success <- success %>%
+  bind_cols(wgts %>%
+              select(corrected_exp_diff, corrected_exp_tot2))
+success <- success %>%
+  filter(corrected_exp_tot2 > 0) %>%
+  select(stateid, corrected_exp_tot2) %>%
+  group_by(stateid) %>%
+  summarise(corrected_med_exp = round(median(corrected_exp_tot2), 2)) %>%
+  right_join(success, by = "stateid") %>%
+  mutate(corrected_exp_success = ifelse(corrected_exp_diff > corrected_med_exp, 1, 0))
+  
+```
+
+
+```{r}
+table(successful_hh_corrected_exp = success$corrected_exp_success)
+
+table(nrega = success$nrega, corrected_exp = success$corrected_exp_success)
+
+table(poor = success$poor, corrected_exp = success$corrected_exp_success)
+```
+
+```{r}
+table(states = success$stateid, successful_hh_corrected_exp = success$corrected_exp_success)
+```
+
+
+Understanding HH which show success in both expenditure and corrected expenditure
+```{r}
+
+table(successful_hh_wrt_qty = success$qty_success, successful_hh_wrt_exp = success$exp_success)
+
+table(successful_hh_wrt_qty = success$qty_success, successful_hh_wrt_corrected_exp = success$corrected_exp_success)
+```
+
+```{r}
+wgts %>%
+  filter(wgt_diff > 0) %>%
+  select(stateid, wgt_diff) %>%
+  group_by(stateid) %>%
+  summarise(med_qty = round(median(wgt_diff), 2)) %>%
+  ggplot(aes(x = stateid, y = med_qty)) +
+  geom_bar(stat = "identity") 
+  
+```
+
+Understanding how many people were poor under nrega pre and post
+
+
+```{r}
+require(dplyr)
+hhx_new1 <- success %>%
+  select(code, qty_success) %>%
+  right_join(hhx_new1, by = 'code')
+
+hhy_new1 <- success %>%
+  select(code, qty_success) %>%
+  right_join(hhy_new1, by = 'code')
+```
+
+```{r}
+table(poor = hhx_new1$poor, success = hhx_new1$qty_success)
+
+table(poor = hhy_new1$poor, success = hhy_new1$qty_success)
+```
+
+```{r}
+hh_nrega_ihds1 <- hhx_new1 %>%
+  semi_join(hh_nrega, by = "code") 
+
+table(success = hh_nrega$qty_success)
+table(poor_pre = hh_nrega_ihds1$poor, success = hh_nrega_ihds1$qty_success)
+table(poor_post = hh_nrega$poor, success = hh_nrega_ihds1$qty_success)
+
+```
+

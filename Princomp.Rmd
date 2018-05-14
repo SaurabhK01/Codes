@@ -1,0 +1,161 @@
+---
+title: "Princomp"
+author: "Saurabh"
+date: "February 15, 2018"
+output: html_document
+---
+Getting consumption data ready for princomp
+
+Using only consumption variable
+```{r}
+require(dplyr)
+co_data <- hhx_new1 %>%
+  select(starts_with("co"), -ends_with("b"), -ends_with("c"), -ends_with("t"), -ends_with("x"), -ends_with("e"), -code, -c(co15:co19), -c(co20:co29), -c(co30:co39), -c(co40:co47))%>%
+  bind_cols(copc = x_subset$copc)
+co_data
+
+co_data3 <- co_data %>%
+  select(-c(co11a, co12a, co1d, co2d, co3d, co5a, co5d, co8a, co9a, copc))
+
+co_data4 <- co_data %>%
+  select(co1a, co2a, co3a, co4a, co5a, co7a, co8a, co9a, co10a, co11a, co12a)
+
+co_data4
+
+```
+
+
+
+```{r}
+pc_co4 <- princomp(formula = ~., data = co_data4, cor = TRUE)
+
+summary(pc_co4)
+```
+
+Sending Loadiings to Mentors
+```{r}
+pc_co4$loadings
+
+```
+
+
+Understanding the overall distribution of each variable
+```{r}
+lapply(co_data, desc_stat)
+```
+
+
+```{r}
+co_data$co10a <- replace(co_data$co10a, which(is.na(co_data$co10a)), 0)
+
+co_data$co11a <- replace(co_data$co11a, which(is.na(co_data$co11a)), 0)
+
+co_data$co12a <- replace(co_data$co12a, which(is.na(co_data$co12a)), 0)
+
+
+
+co_data$co1a <- replace(co_data$co1a, which(is.na(co_data$co1a)), 0)
+
+co_data$co1d <- replace(co_data$co1d, which(is.na(co_data$co1d)), 0)
+
+
+co_data$co2a <- replace(co_data$co2a, which(is.na(co_data$co2a)), 0)
+
+co_data$co2d <- replace(co_data$co2d, which(is.na(co_data$co2d)), 0)
+
+
+co_data$co3a <- replace(co_data$co3a, which(is.na(co_data$co3a)), 0)
+
+co_data$co3d <- replace(co_data$co3d, which(is.na(co_data$co3d)), 0)
+
+co_data$co4a <- replace(co_data$co4a, which(is.na(co_data$co4a)), 0)
+
+co_data$co4d <- replace(co_data$co4d, which(is.na(co_data$co4d)), 0)
+
+co_data$co5a <- replace(co_data$co5a, which(is.na(co_data$co5a)), 0)
+
+co_data$co5d <- replace(co_data$co5d, which(is.na(co_data$co5d)), 0)
+
+co_data$co7a <- replace(co_data$co7a, which(is.na(co_data$co7a)), 0)
+
+co_data$co8a <- replace(co_data$co8a, which(is.na(co_data$co8a)), 0)
+
+co_data$co9a <- replace(co_data$co9a, which(is.na(co_data$co9a)), 0)
+```
+
+
+Trying to create a fuction to impute missing values from the entire dataset, imputing it to 0
+```{r}
+na_index <- function(x) {
+  for(i in 1:length(x)) {
+    which(is.na(x))
+    }
+}
+
+replace_na(co_data$co10a)
+
+apply(co_data, 2, replace, na_index, 0)
+```
+Need to find a robust method which can go through each row of each variable and impute 0
+
+Scaling data
+```{r}
+scale_co <- as.data.frame(scale(co_data))
+scale_ntcopc <- as.data.frame(scale(co_data2))
+```
+
+
+#PrincComp
+
+```{r}
+pc_co <- princomp(formula = ~., data = co_data, cor = TRUE)
+pc_co
+
+pc_coscale <- princomp(formula = ~., data = scale_co, cor = TRUE)
+
+pc_co2 <- princomp(formula = ~., data = co_data2, cor = TRUE) 
+
+```
+
+```{r}
+summary(pc_co)
+summary(pc_coscale)
+summary(pc_co2)
+```
+
+```{r}
+cor(co_data)
+```
+
+```{r}
+cor(co_data3)
+```
+
+```{r}
+pc_co3 <- princomp(formula = ~., data = co_data3, cor = TRUE)
+summary(pc_co3)
+```
+
+```{r}
+x_subset_clean <- na.omit(x_subset)
+dim(x_subset_clean)
+```
+
+```{r}
+desc_stat(hh_nrega$co1a)
+```
+
+```{r}
+nrega_co <- hh_nrega %>%
+  select(starts_with("co"), -ends_with("b"), -ends_with("c"), -ends_with("t"), -ends_with("x"), -ends_with("e"), -code, -c(co15:co19), -c(co20:co29), -c(co30:co39), -c(co40:co47))
+  
+
+sapply(nrega_co, desc_stat)
+```
+
+pc_wb_co
+```{r}
+pc_wb_co <- princomp(formula=~co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47, data = wb_success, cor = TRUE)
+summary(pc_wb_co)
+```
+

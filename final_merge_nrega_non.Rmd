@@ -1,0 +1,159 @@
+---
+title: "Reworking Data"
+author: "Saurabh"
+date: "February 2, 2018"
+output: html_document
+---
+
+
+```{r}
+library(dplyr)
+library(data.table)
+```
+
+
+
+Removing .x and .y from both the datasets
+```{r}
+gsub("\\..*", "", x = names(hhx)) %>%
+  setequal(gsub("\\..*", "", x = names(hhy)))
+#Testin whether the gsub function works and has same names in both dts
+setnames(hhx, names(hhx), gsub("\\..*", "", x = names(hhx)))
+
+setnames(hhy, names(hhy), gsub("\\..*", "", x = names(hhy)))
+
+#Checking whether the name changing has been effective or not
+names(hhx)
+names(hhy)
+
+# Yes .x and .y has been removed
+```
+
+After Cleaning the data we've
+```{r}
+dim(hhx_new)
+dim(hhy_new)
+```
+349 variables
+
+```{r}
+table(hhy_new$nrega)
+```
+
+Non_nrega long data
+```{r}
+library(dplyr)
+hh_non1 <- hhy_new %>%
+  semi_join(non_anomaly, by ="code") %>%
+  filter(nrega == FALSE) 
+
+hh_non <- hhx_new %>%
+  semi_join(hh_non1, by = "code") %>%
+  bind_rows(hh_non1)
+```
+
+Nrega long data
+```{r}
+hh_nrega1 <- hhy_new %>%
+  semi_join(non_anomaly, by ="code") %>%
+  filter(nrega == TRUE) 
+
+hh_nrega <- hhx_new %>%
+  semi_join(hh_nrega1, by = "code") %>%
+  bind_rows(hh_nrega1)
+```
+
+Adding few more variables
+```{r}
+district1 <- ihds1_hh %>%
+  semi_join(intact30k, by = "code") %>%
+  select(code, distname, incother) 
+
+#renaming the distname variable to district
+names(district1) <- c("code", "district", "incother")
+
+#Adding nwknrega, incnrega & nwknonnrega, incnonnrega
+district1$nwknrega <- 0
+district1$incnrega <- 0
+district1$nwknonnrega <- 0
+district1$incnonnrega <- 0
+district1$district <- as.character(district1$district)
+head(district1)
+
+
+hhx_new1 <- district1 %>%
+  left_join(hhx_new, by = "code") 
+#dim [1] 30462   355
+```
+
+
+```{r}
+district2 <- hh2 %>%
+  semi_join(intact30k, by = "code") %>%
+  select(code, district, incother, nwknrega, incnrega, nwknonnrega, incnonnrega) 
+
+district2$district <- as.character(district2$district)
+
+head(district2)
+
+hhy_new1 <- district2%>%
+  left_join(hhy_new, by = "code")
+#[1] 30462   355
+```
+
+
+Joining the new data
+```{r}
+#long data
+hhl <- bind_rows(hhx_new1, hhy_new1)
+#dim [1] 60924   355
+
+#Only Nrega post
+hh_nrega2 <- hhy_new1 %>%
+  filter(nrega == "TRUE") 
+
+hh_nrega <- hhx_new1 %>%
+  semi_join(hh_nrega2, by = "code") %>%
+  bind_rows(hh_nrega2)
+
+hhy_new1 %>%
+  filter(nrega == "FALSE") %>%
+  dim()
+#dim 21557 355, which is less than calculated. There are NA's in nrega variable.
+
+```
+
+Checking NAs whether they're MNAR or MAR
+```{r}
+hhy_new1 %>%
+  filter(is.na(nrega)) %>%
+  select(c(code, nrega, incnrega, nwknrega, nwknonnrega, incnonnrega))
+#55 NA's
+#So we're sure that NAs are Nothing but non Nrega Individuals
+#library(car)
+#hhy_new1$nrega <- recode(hhy_new1$nrega, "NA = FALSE")
+#OR 
+
+hhy_new1$nrega <- replace(hhy_new1$nrega, which(is.na(hhy_new1$nrega)), FALSE)
+
+```
+
+Continuing with getting non_nrega long data
+```{r}
+#Coincidentally we got data recoded as 0 an 1, so coercing back to its true logical format
+hhy_new1$nrega <- recode(hhy_new1$nrega, "FALSE = '0'; else = '1'")
+
+hhy_new1$nrega <- as.logical(hhy_new1$nrega)
+
+hh_non2 <- hhy_new1 %>%
+  filter(nrega == FALSE) 
+#dim [1] 21612   355
+
+hh_non <- hhx_new1 %>%
+  semi_join(hh_non2, by = "code") %>%
+  bind_rows(hh_non2) 
+#dim [1] 43224   355
+
+  
+```
+

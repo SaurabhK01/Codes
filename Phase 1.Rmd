@@ -1,0 +1,204 @@
+---
+title: "Phase 1"
+author: "Saurabh"
+date: "December 12, 2017"
+output: html_document
+---
+
+#Importing the data
+Since I've the rda file I've used rio::import()
+
+```{r}
+library(rio)
+
+ihds2_hh <- import("36151-0002-Data.rda")
+class(ihds2_hh)
+dim(ihds2_hh)
+```
+
+One more beautiful and organised way of checking the data is 
+dplyr::glimpse()
+```{r}
+library(dplyr)
+
+glimpse(ihds2_hh)
+```
+@Prashant check the variable DISTRICT!!! Our problem is solved.. :)
+
+#District Names & id
+So for our reference 
+```{r}
+dist_2 <- unique(ihds2_hh$DISTRICT)
+#The complete list!
+dist_2
+```
+
+
+
+#Checking Variable Names
+```{r}
+full_names2 <- names(ihds2_hh)
+full_names2
+arrange_mnames <- full_names2[order(full_names2)]
+arrange_mnames
+```
+
+#Checking unique States
+
+```{r}
+unique(ihds2_hh$STATEID)
+```
+Variable with such a data can be cumbersome to work with!
+
+#Changing the variable STATEID to something simple
+```{r}
+ihds2_hh$STATEID <- gsub(".*[a-z|A-Z]\\s", "", ihds2_hh$STATEID) 
+#This will coerce the STATEID variable and make it simple for us to use
+```
+The above function is called a regex function; a lot more thing to learn on it, took me an hour to get the expected result!
+```{r}
+head(ihds2_hh$STATEID)
+ihds2_hh$STATEID <- as.factor(ihds2_hh$STATEID) #Coercing it back to factors
+class(ihds2_hh$STATEID)
+```
+
+#Checking Unique Districts in the entire set!
+```{r}
+unique(ihds2_hh$DISTID)
+
+```
+@Prashant This is the problem we were facing!
+@Rest According to the survey we must have approx 300 districts but we can see only 68
+
+```{r}
+#Counting frequncy of each state
+table(ihds2_hh$STATEID)
+```
+Choosing random states to check district codes under it.
+
+```{r}
+set2 <- subset(ihds2_hh, STATEID %in% c("02", "03", "08", "21", "28"))
+table(st = set2$STATEID, dst = set2$DISTID)
+```
+From the Table we can see that the District codes are reused!!!
+
+```{r}
+summary(ihds2_hh$SURVEY)
+```
+
+Correcting the first variable
+
+```{r}
+ihds2_hh$SURVEY <- as.character(ihds2_hh$SURVEY)
+```
+
+Using gsub to clean the first variable
+
+```{r}
+ihds2_hh$SURVEY <- gsub(".*[a-z|A-Z]\\s", "", ihds2_hh$SURVEY)
+head(ihds2_hh$SURVEY)
+```
+
+We Don't need an extra variable for Geographic identifiers, as they've already been concatenated in IDPSU = State + Dist + PSU and also
+IDHH = State + Dist + PSU + HHID + HHSPLITID.
+
+How many Split HH do we have to deal with?
+```{r}
+table(ihds2_hh$HHSPLITID == 1)
+```
+
+What is the average pay of NREGA employee?
+
+```{r}
+#UNderstanding few variable before
+
+summary(ihds2_hh$NWKNREGA)
+#Number of HH members working for NREGA
+
+summary(ihds2_hh$NWKNONNREGA)
+#Number of HH members working for NON NREGA
+
+summary(ihds2_hh$INCNREGA)
+#Mean = INR 855
+
+
+```
+
+#Exploring further into the Income variable
+First we need to see how many observations of NREGA employed vs non NREGA
+```{r}
+summary(ihds2_hh$IN16)
+#IN16 is Number of NREGA Jobcards in each HH
+
+ihds2_hh$nrega <- ifelse(ihds2_hh$IN16 > 0, TRUE, FALSE)
+#Creating a variable which will help us distinguish between NREGA and NON NREGA
+
+table(ihds2_hh$nrega, useNA = "always")
+
+#Crosschecking with the facts from table
+sum(ihds2_hh$IN16 == 0, na.rm = TRUE)
+
+```
+
+So we have 11968 observations of NREGA as compared to Non NREGA which are 30110.
+NOTE: These are just observations, the number of employed will be higher than 11968
+
+To Check total number of employed people
+```{r}
+sum(ihds2_hh$IN16, na.rm = TRUE)
+```
+Slightly higher than 11968!
+
+
+```{r}
+library(dplyr)
+#Data with NREGA employed only
+nrega2 <- filter(ihds2_hh, nrega == TRUE)
+dim(nrega2)
+boxplot(nrega2$INCNREGA)
+
+
+```
+
+##How many are un-paid employees or employees which were not issued any work!
+
+```{r}
+table(nrega2$INCNREGA > 0)
+```
+
+```{r}
+nonzero <- nrega2[which(nrega2$INCNREGA > 0),]
+
+dim(nonzero)
+
+summary(nonzero$INCNREGA)
+```
+
+```{r}
+car::Boxplot(nonzero$INCNREGA)
+#[1] 2245 2247 2251 2253 2252 2255 2515 3268 2679 1386 are outliers
+```
+
+```{r}
+#The number of observations which fall beyond INR 10000 as payment for NREGA per month
+sum(nonzero$INCNREGA > 20000)
+```
+
+
+```{r}
+library(ggplot2)
+
+ggplot(nonzero, aes(x = INCNREGA)) +
+  geom_dotplot() 
+
+
+```
+
+In all, what we can see is in IHDS II is that we've very few proper observation to work with! 
+
+```{r}
+#To understand the Number of persons in HH with High Pay!
+nonzero[nonzero$INCNREGA > 50000, "NWKNREGA"]
+```
+
+@Prashant throw some light on this! 

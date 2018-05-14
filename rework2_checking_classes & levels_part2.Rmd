@@ -1,0 +1,379 @@
+---
+title: "Untitled"
+author: "Saurabh"
+date: "February 2, 2018"
+output: html_document
+---
+
+```{r}
+unique(hhx_new$cg1)
+unique(hhy_new$cg1)
+```
+
+```{r}
+hhx_new$cg1 <- as.factor(hhx_new$cg1)
+unique(hhx_new$cg1)
+```
+
+```{r}
+levels(hhx_new$cg1) <- levels(hhx$cg1)
+levels(hhy_new$cg1) <- levels(hhy$cg1)
+```
+deleting cg1, was not coded properly
+```{r}
+hhx_new$cg1 <- NULL
+hhy_new$cg1 <- NULL
+```
+
+
+cg10
+```{r}
+unique(hhx_new$cg10)
+unique(hhy_new$cg10)
+```
+
+```{r}
+levels(hhx_new$cg10) <- levels(hhy_new$cg10)
+```
+
+```{r}
+levels(hhx_new$cg11) <- levels(hhy_new$cg11)
+```
+
+```{r}
+levels(hhx_new$cg12) <- levels(hhy_new$cg12)
+levels(hhx_new$cg13) <- levels(hhy_new$cg13)
+
+```
+
+```{r}
+levels(hhx_new$cg14) <- levels(hhy_new$cg14)
+levels(hhx_new$cg15) <- levels(hhy_new$cg15)
+levels(hhx_new$cg16) <- levels(hhy_new$cg16)
+levels(hhx_new$cg17) <- levels(hhy_new$cg17)
+levels(hhx_new$cg18) <- levels(hhy_new$cg18)
+levels(hhx_new$cg19) <- levels(hhy_new$cg19)
+levels(hhx_new$cg20) <- levels(hhy_new$cg20)
+levels(hhx_new$cg21) <- levels(hhy_new$cg21)
+levels(hhx_new$cg22) <- levels(hhy_new$cg22)
+levels(hhx_new$cg23) <- levels(hhy_new$cg23)
+levels(hhx_new$cg24) <- levels(hhy_new$cg24)
+```
+
+```{r}
+levels(hhx_new$cg3) <- levels(hhy_new$cg3)
+levels(hhx_new$cg4) <- levels(hhy_new$cg4)
+levels(hhx_new$cg5) <- levels(hhy_new$cg5)
+levels(hhx_new$cg6) <- levels(hhy_new$cg6)
+levels(hhx_new$cg7) <- levels(hhy_new$cg7)
+levels(hhx_new$cg8) <- levels(hhy_new$cg8)
+levels(hhx_new$cg9) <- levels(hhy_new$cg9)
+```
+
+co10b
+```{r}
+unique(hhx_new$co10b)
+hhx_new$co10b <- factor(hhx_new$co10b)
+```
+
+```{r}
+levels(hhx_new$co13b) <- levels(hhy_new$co13b)
+```
+
+co9b
+```{r}
+levels(hhx_new$co9b)
+levels(hhy_new$co9b)
+```
+Recoding hhx_new$co9b
+```{r}
+hhx_new$co9b <- recode(hhx_new$co9b, "'(1) Home grown' = '(1) Home grown 1';'(2) Purchased'='(2) Purchased 2'; '(3) Both'='(3) Both 3'; else = NA")
+levels(hhx_new$co9b)
+```
+
+```{r}
+levels(hhx_new$db2f) <- levels(hhy_new$db2f)
+levels(hhx_new$db3a) <- levels(hhy_new$db3a)
+levels(hhx_new$db3b) <- levels(hhy_new$db3b)
+levels(hhx_new$db5a) <- levels(hhy_new$db5a)
+```
+
+```{r}
+hhx_new$fm1 <- NULL
+hhy_new$fm1 <- NULL
+```
+
+fm21b
+```{r}
+levels(hhx_new$fm21b) <- levels(hhy_new$fm21b)
+levels(hhx_new$fm3) <- levels(hhy_new$fm3)
+```
+
+fu
+```{r}
+levels(hhx_new$fu1) <- levels(hhy_new$fu1)
+levels(hhx_new$fu10) <- levels(hhy_new$fu10)
+levels(hhx_new$fu10a) <- levels(hhy_new$fu10a)
+```
+
+fu1b
+```{r}
+levels(hhx_new$fu1b)
+levels(hhy_new$fu1b)
+```
+
+```{r}
+hhy_new$fu1b <- recode(hhy_new$fu1b, "'(6) Paid by Employer / Office'='(5) Other means';'(7) Illegal connection'='(5) Other means';'(8) Other means'='(5) Other means'")
+
+hhy_new$fu1b <- recode(hhy_new$fu1b, "'(5) Other means'='(6) Other means'")
+
+levels(hhy_new$fu1b)
+class(hhy_new$fu1b)
+
+```
+
+```{r}
+levels(hhx_new$fu1b) <- levels(hhy_new$fu1b)
+levels(hhx_new$fu1b)
+```
+
+```{r}
+levels(hhx_new$fu4)
+levels(hhy_new$fu4)
+```
+
+```{r}
+hhx_new$fu4 <- recode(hhx_new$fu4, "'(0) No biomass stove'='(4) Other/Not biomass (Kerosene, LPG etc.) 4'")
+```
+
+```{r}
+levels(hhx_new$fu4) <- levels(hhy_new$fu4)
+levels(hhx_new$fu4)
+levels(hhy_new$fu4)
+```
+
+```{r}
+levels(hhx_new$fu5) <- levels(hhy_new$fu5)
+levels(hhx_new$fu6) <- levels(hhy_new$fu6)
+levels(hhx_new$fu6a) <- levels(hhy_new$fu6a)
+levels(hhx_new$fu7) <- levels(hhy_new$fu7)
+levels(hhx_new$fu8) <- levels(hhy_new$fu8)
+levels(hhx_new$fu8a) <- levels(hhy_new$fu8a)
+levels(hhx_new$fu9) <- levels(hhy_new$fu9)
+```
+
+```{r}
+levels(hhx_new$poor) <- levels(hhy_new$poor)
+```
+
+hhed5
+```{r}
+hhy_new$hhed5adult <- recode(hhy_new$hhed5adult, "'(16) Above Bachelors 16'='(15) Bachelors 15';'(55) <1 class 55' = NA")
+```
+
+```{r}
+levels(hhx_new$hhed5adult) <- levels(hhy_new$hhed5adult)
+```
+
+```{r}
+hhy_new$hhed5f <- recode(hhy_new$hhed5f, "'(16) Above Bachelors 16'='(15) Bachelors 15';'(55) <1 class 55' = NA")
+hhy_new$hhed5m <- recode(hhy_new$hhed5m, "'(16) Above Bachelors 16'='(15) Bachelors 15';'(55) <1 class 55' = NA")
+```
+
+```{r}
+levels(hhx_new$hhed5f) <- levels(hhy_new$hhed5f)
+levels(hhx_new$hhed5m) <- levels(hhy_new$hhed5m)
+```
+
+hq
+```{r}
+levels(hhx_new$hq1) <- levels(hhy_new$hq1)
+levels(hhx_new$hq2b) <- levels(hhy_new$hq2b)
+levels(hhx_new$hq3) <- levels(hhy_new$hq3)
+levels(hhx_new$hq4) <- levels(hhy_new$hq4)
+levels(hhx_new$hq5) <- levels(hhy_new$hq5)
+levels(hhx_new$hq6) <- levels(hhy_new$hq6)
+```
+
+id
+```{r}
+levels(hhx_new$id14) <- levels(hhy_new$id14)
+levels(hhx_new$id15) <- levels(hhy_new$id15)
+```
+
+```{r}
+unique(hhx_new$id20)
+table(hhx_new$id20)
+levels(hhy_new$id20)
+table(hhy_new$id20)
+```
+
+Discrepancy in data, deleting id20
+```{r}
+hhx_new$id20 <- NULL
+hhy_new$id20 <- NULL
+```
+
+```{r}
+hhx_new$in16a <- NULL
+hhy_new$in16a <- NULL
+```
+
+lc and me, metro, mp
+```{r}
+levels(hhx_new$lc2) <- levels(hhy_new$lc2)
+levels(hhx_new$lc3) <- levels(hhy_new$lc3)
+levels(hhx_new$me1) <- levels(hhy_new$me1)
+levels(hhx_new$me2) <- levels(hhy_new$me2)
+levels(hhx_new$me3) <- levels(hhy_new$me3)
+levels(hhx_new$me4) <- levels(hhy_new$me4)
+levels(hhx_new$me5) <- levels(hhy_new$me5)
+levels(hhx_new$me6) <- levels(hhy_new$me6)
+levels(hhx_new$me7) <- levels(hhy_new$me7)
+levels(hhx_new$me8) <- levels(hhy_new$me8)
+levels(hhx_new$me9) <- levels(hhy_new$me9)
+levels(hhx_new$me10) <- levels(hhy_new$me10)
+
+levels(hhx_new$metro6) <- levels(hhy_new$metro6)
+
+levels(hhx_new$mp5c) <- levels(hhy_new$mp5c)
+levels(hhx_new$mp5d) <- levels(hhy_new$mp5d)
+levels(hhx_new$mp5e) <- levels(hhy_new$mp5e)
+levels(hhx_new$mp5f) <- levels(hhy_new$mp5f)
+levels(hhx_new$mp5g) <- levels(hhy_new$mp5g)
+levels(hhx_new$mp5h) <- levels(hhy_new$mp5h)
+levels(hhx_new$mp5i) <- levels(hhy_new$mp5i)
+levels(hhx_new$mp5j) <- levels(hhy_new$mp5j)
+levels(hhx_new$mp5k) <- levels(hhy_new$mp5k)
+levels(hhx_new$mp5l) <- levels(hhy_new$mp5l)
+levels(hhx_new$mp5m) <- levels(hhy_new$mp5m)
+levels(hhx_new$mp5n) <- levels(hhy_new$mp5n)
+levels(hhx_new$mp5o) <- levels(hhy_new$mp5o)
+levels(hhx_new$mp5p) <- levels(hhy_new$mp5p)
+
+hhx_new$nf10b <- NULL
+hhy_new$nf10b <- NULL
+
+levels(hhx_new$nf11) <- levels(hhy_new$nf11)
+levels(hhx_new$nf20) <- levels(hhy_new$nf20)
+
+levels(hhx_new$oh3) <- levels(hhy_new$oh3)
+
+
+hhx_new$rc1d <- NULL
+hhy_new$rc1d <- NULL
+
+levels(hhx_new$rc2) <- levels(hhy_new$rc2)
+
+levels(hhx_new$sa2) <- levels(hhy_new$sa2)
+levels(hhx_new$sa3) <- levels(hhy_new$sa3)
+levels(hhx_new$sa4) <- levels(hhy_new$sa4)
+levels(hhx_new$sa5) <- levels(hhy_new$sa5)
+
+hhx_new$sa6 <- NULL
+hhy_new$sa6 <- NULL
+
+```
+
+
+nf1a
+```{r}
+unique(hhx_new$nf1a)
+unique(hhy_new$nf1a)
+table(hhx_new$nf1a)
+table(hhy_new$nf1a)
+```
+deleting nf1a
+
+```{r}
+hhx_new$nf1a <- NULL
+hhy_new$nf1a <- NULL
+```
+
+tr urban wa
+```{r}
+levels(hhx_new$tr2) <- levels(hhy_new$tr2)
+levels(hhx_new$tr3) <- levels(hhy_new$tr3)
+
+levels(hhx_new$urban) <- levels(hhy_new$urban)
+
+levels(hhx_new$wa1) <- levels(hhy_new$wa1)
+levels(hhx_new$wa10) <- levels(hhy_new$wa10)
+levels(hhx_new$wa5) <- levels(hhy_new$wa5)
+levels(hhx_new$wa6) <- levels(hhy_new$wa6)
+levels(hhx_new$wa7) <- levels(hhy_new$wa7)
+levels(hhx_new$wa8) <- levels(hhy_new$wa8)
+
+hhx_new$wa11a <- NULL
+hhy_new$wa11a <- NULL
+
+```
+
+db1
+```{r}
+unique(hhx_new$db1)
+summary(hhx_new$db1)
+unique(hhy_new$db1)
+```
+
+coding db1 as debt_p5
+```{r}
+hhx_new$debt_p5 <- ifelse(hhx_new$db1 > 0, "(0) No 0", "(1) Yes 1")
+hhx_new$debt_p5 <- factor(hhx_new$debt_p5)
+hhy_new$debt_p5 <- hhy_new$db1
+```
+
+```{r}
+hhx_new$db1 <- NULL
+hhy_new$db1 <- NULL
+```
+
+id20
+```{r}
+unique(hhx_new$fm6b)
+unique(hhy_new$fm6b)
+```
+
+```{r}
+hhx_new$fm6b <- NULL
+hhy_new$fm6b <- NULL
+hhx_new$fm8b <- NULL
+hhy_new$fm8b <- NULL
+```
+
+```{r}
+dim(hhx_new)
+dim(hhy_new)
+```
+
+```{r}
+levels(hhx_new$cg2) <- levels(hhy_new$cg2)
+levels(hhx_new$co3b) <- levels(hhy_new$co3b)
+levels(hhx_new$co4b) <- levels(hhy_new$co4b)
+levels(hhx_new$co6b) <- levels(hhy_new$co6b)
+```
+
+
+```{r}
+class(hhx_new$stateid)
+class(hhy_new$stateid)
+table(hhx_new$stateid)
+table(hhy_new$stateid)
+```
+
+```{r}
+levels(hhx_new$stateid) <- levels(hhy_new$stateid)
+```
+
+
+```{r}
+sapply(hhx_new, class) %>%
+  setequal(sapply(hhy_new, class))
+```
+
+```{r}
+sapply(hhx_new, levels) %>%
+  setequal(sapply(hhy_new, levels))
+```
+
+

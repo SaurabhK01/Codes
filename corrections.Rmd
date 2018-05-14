@@ -1,0 +1,354 @@
+---
+title: "corrections"
+author: "Saurabh"
+date: "January 20, 2018"
+output: html_document
+---
+
+```{r}
+unique(hhx_small2$groups8)
+
+unique(hhy_small2$groups8)
+
+hhx_small2$groups8 <- factor(hhx_small2$groups8)
+```
+
+```{r}
+unique(hhx_small2$poor)
+
+unique(hhy_small2$poor)
+
+levels(hhx_small2$poor) <- levels(hhy_small2$poor)
+```
+
+```{r}
+unique(hhx_small2$id15)
+
+unique(hhy_small2$id15)
+
+levels(hhx_small2$id15) <- levels(hhy_small2$id15)
+
+```
+
+```{r}
+unique(hhx_small2$fm3)
+
+unique(hhy_small2$fm3)
+
+levels(hhx_small2$fm3) <- levels(hhy_small2$fm3)
+
+```
+
+```{r}
+unique(hhx_small2$fm6b)
+
+unique(hhy_small2$fm6b)
+
+hhx_small2$fm6b <- NULL
+
+hhy_small2$fm6b <- NULL
+
+```
+
+```{r}
+unique(hhx_small2$fm8b)
+
+unique(hhy_small2$fm8b)
+
+hhx_small2$fm8b <- NULL
+
+hhy_small2$fm8b <- NULL
+```
+
+```{r}
+unique(hhx_small2$fm21b)
+
+unique(hhy_small2$fm21b)
+
+levels(hhx_small2$fm21b) <- levels(hhy_small2$fm21b)
+
+```
+
+```{r}
+unique(hhx_small2$nf11)
+
+unique(hhy_small2$nf11)
+
+hhx_small2$nf11 <- NULL
+
+hhy_small2$nf11 <- NULL
+```
+
+```{r}
+levels(hhx_small2$rc2)
+
+levels(hhy_small2$rc2)
+
+levels(hhx_small2$rc2) <- levels(hhy_small2$rc2)
+```
+
+```{r}
+levels(hhx_small2$co1b)
+
+levels(hhy_small2$co1b)
+
+hhx_small2$co1b <- NULL
+
+hhy_small2$co1b <- NULL
+
+```
+
+```{r}
+levels(hhx_small2$wa1)
+
+levels(hhy_small2$wa1)
+
+
+levels(hhx_small2$wa1) <- levels(hhy_small2$wa1)
+
+```
+
+```{r}
+levels(hhx_small2$wa2)
+
+levels(hhy_small2$wa2)
+
+hhx_small2$wa1 <- NULL
+
+hhy_small2$wa1 <- NULL
+```
+
+```{r}
+levels(hhx_small2$wa5)
+
+levels(hhy_small2$wa5)
+
+levels(hhx_small2$wa5) <- levels(hhy_small2$wa5)
+```
+
+```{r}
+levels(hhx_small2$wa6)
+
+levels(hhy_small2$wa6)
+
+levels(hhx_small2$wa6) <- levels(hhy_small2$wa6)
+```
+
+```{r}
+levels(hhx_small2$wa7)
+
+levels(hhy_small2$wa7)
+
+levels(hhx_small2$wa7) <- levels(hhy_small2$wa7)
+```
+
+```{r}
+levels(hhx_small2$sa2)
+
+levels(hhy_small2$sa2)
+
+levels(hhx_small2$sa2) <- levels(hhy_small2$sa2)
+```
+
+```{r}
+levels(hhx_small2$sa3)
+
+levels(hhy_small2$sa3)
+
+levels(hhx_small2$sa3) <- levels(hhy_small2$sa3)
+```
+
+```{r}
+levels(hhx_small2$sa4)
+
+levels(hhy_small2$sa4)
+
+levels(hhx_small2$sa4) <- levels(hhy_small2$sa4)
+```
+
+```{r}
+levels(hhx_small2$sa5)
+
+levels(hhy_small2$sa5)
+
+levels(hhx_small2$sa5) <- levels(hhy_small2$sa5)
+
+```
+
+```{r}
+levels(hhx_small2$hq1)
+
+levels(hhy_small2$hq1)
+
+levels(hhx_small2$hq1) <- levels(hhy_small2$hq1)
+```
+
+```{r}
+levels(hhx_small2$hq2a)
+
+levels(hhy_small2$hq2a)
+
+levels(hhx_small2$hq2a) <- levels(hhy_small2$hq2a)
+
+hhx_small2$hq2a <- NULL
+
+hhy_small2$hq2a <- NULL
+```
+
+```{r}
+levels(hhx_small2$hq2b)
+
+levels(hhy_small2$hq2b)
+
+levels(hhx_small2$hq2b) <- levels(hhy_small2$hq2b)
+```
+
+```{r}
+levels(hhx_small2$hq3)
+
+levels(hhy_small2$hq3)
+
+levels(hhx_small2$hq3) <- levels(hhy_small2$hq3)
+```
+
+```{r}
+levels(hhx_small2$hq4)
+
+levels(hhy_small2$hq4)
+levels(hhx_small2$hq4) <- levels(hhy_small2$hq4)
+```
+
+```{r}
+levels(hhx_small2$hq5)
+
+levels(hhy_small2$hq5)
+
+levels(hhx_small2$hq5) <- levels(hhy_small2$hq5)
+```
+
+```{r}
+levels(hhx_small2$hq6)
+
+levels(hhy_small2$hq6)
+
+levels(hhx_small2$hq6) <- levels(hhy_small2$hq6)
+```
+
+```{r}
+hhx_small2$jcardapp <- "(0) No 0"
+
+hhx_small2$jcardapp <- factor(hhx_small2$jcardapp, ordered = TRUE, levels = c("(0) No 0",  "(1) Yes 1"))
+
+levels(hhx_small2$jcardapp)
+
+table(hhx_small2$jcardapp)
+
+levels(hhy_small2$jcardapp)
+
+hhx_small2$jcardapp <- ifelse(hhx_small2$jcardapp == "4",  "NA", ifelse(hhx_small2$jcardapp == "(0) No 0", "(0) No 0",  "(1) Yes 1"))
+```
+
+```{r}
+
+  hhx_small3 <- subset(hhx_small2, select = -c(stateid, hhed5f, hhed5m, hhed5adult, id14, fm1, nf20, in16a, co2b, co3b, co4b, co5b, co6b, co7b, co8b,  co9b, co10b, co11b, co12b, co13b, co14b, me1 : me10, tr2, tr3, lc2, lc3, mp5c, mp5d, mp5e, mp5f, mp5g, mp5h, mp5i, mp5j, mp5k, mp5l, mp5m, mp5n, mp5o, mp5p, wa10, wa11a, sa6, fu1b, fu4, fu5, fu5a, fu6, fu6a, fu7, fu7a, fu8, fu8a, fu9, fu9a, fu10, fu10a))
+  hhy_small3 <- subset(hhy_small2 ,select = -c(stateid, hhed5f, hhed5m, hhed5adult, id14, fm1, nf20, in16a, co2b, co3b, co4b, co5b, co6b, co7b, co8b,  co9b, co10b, co11b, co12b, co13b, co14b, me1 : me10, tr2, tr3, lc2, lc3, mp5c, mp5d, mp5e, mp5f, mp5g, mp5h, mp5i, mp5j, mp5k, mp5l, mp5m, mp5n, mp5o, mp5p, wa10, wa11a, sa6, fu1b, fu4, fu5, fu5a, fu6, fu6a, fu7, fu7a, fu8, fu8a, fu9, fu9a, fu10, fu10a))
+ 
+```
+
+```{r}
+del_string <- c("hhed5f", "hhed5m", "hhed5adult", "id14", "fm1", "nf20", "in16a", "co1b", "co2b","co3b", "co4b", "co5b", "co6b", "co7b", "co8b", "tr2", "tr3", "lc2", "lc3", "mp5c", "mp5d", "mp5e", "mp5f", "mp5g", "mp5h", "mp5i", "mp5j", "mp5k", "mp5l", "mp5m", "mp5n", "mp5o", "mp5p", "wa10", "wa11a", "sa6", "fu1b", "fu4", "fu5", "fu5a", "fu6", "fu6a", "fu7", "fu7a", "fu8", "fu8a", "fu9", "fu9a", "fu10", "fu10a")
+```
+
+```{r}
+#hhx_small3 <- hhx_small2
+#hhy_small3 <- hhy_small2
+
+dim(hhx_small3)
+dim(hhy_small3)
+```
+
+
+
+```{r}
+dim(hhx_small2)
+dim(hhy_small2)
+```
+
+```{r}
+dim(hhx_small3)
+dim(hhy_small3)
+```
+
+```{r}
+levels(hhx_small2$urban)
+
+levels(hhy_small2$urban)
+
+levels(hhx_small2$urban) <- levels(hhy_small2$urban)
+```
+
+```{r}
+levels(hhx_small2$metro6)
+
+levels(hhy_small2$metro6)
+
+levels(hhx_small2$metro6) <- levels(hhy_small2$metro6)
+```
+
+```{r}
+levels(hhx_small2$poor)
+
+levels(hhy_small2$poor)
+```
+
+```{r}
+levels(hhx_small2$id14) <- levels(hhy_small2$id14)
+
+levels(hhx_small2$id15)
+
+levels(hhy_small2$id15)
+
+unique(hhx_small2$id16)
+
+unique(hhy_small2$id16)
+```
+
+
+```{r}
+levels(hhx_small3$db2f) <- levels(hhy_small3$db2f)
+
+levels(hhx_small3$db3a) <- levels(hhy_small3$db3a)
+
+levels(hhx_small3$db3b) <- levels(hhy_small3$db3b)
+
+levels(hhx_small3$db5a) <- levels(hhy_small3$db5a)
+
+levels(hhx_small3$oh3) <- levels(hhy_small3$oh3)
+
+hhx_small3$wa2 <- NULL
+hhy_small3$wa2 <- NULL
+
+levels(hhx_small3$wa8) <- levels(hhy_small3$wa8)
+
+levels(hhx_small3$fu1) <- levels(hhy_small3$fu1)
+
+levels(hhx_small3$jcardapp) <- levels(hhy_small2$jcardapp)
+
+table(hhx_small3$jcardapp)
+
+class(hhx_small3$jcardapp)
+
+hhy_small3$jcardapp <- as.character(hhy_small3$jcardapp)
+```
+
+
+```{r}
+coercing <- sapply(hhx_small3, class)
+
+class(coercing)
+
+coercing[coercing == "character"]
+```
+
+
+

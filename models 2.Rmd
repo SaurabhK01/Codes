@@ -1,0 +1,106 @@
+---
+title: "Models 2"
+author: "Saurabh"
+date: "March 9, 2018"
+output: html_document
+---
+
+Main model
+```{r}
+qty_mdl_blr <- glm(qty_success ~ groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_nrega, family = binomial)
+
+summary(qty_mdl_blr)
+```
+
+```{r}
+sapply(hh_nrega[,c("groups8", "nwork", "assets", "ed_f", "ed_m", "income", "debt_p5", "hq1", "poor")], function(x) sum(is.na(x)))
+
+hh_nrega3$assets <- replace(hh_nrega3$assets, which(is.na(hh_nrega3$assets)), median(hh_nrega3$assets, na.rm = TRUE))
+
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$hq1)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$groups8)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$debt_p5)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$hq1)),]
+hh_nrega3$poor <- replace(hh_nrega3$poor, which(is.na(hh_nrega3$poor)), "(1) poor 1")
+```
+
+
+AUC for main model
+```{r}
+hh_nrega$predmain <- fitted(qty_mdl_blr)
+
+require(ROCR)
+pred_nrega <- prediction(hh_nrega$predmain, hh_nrega$qty_success)
+perf_nrega <- performance(pred_nrega, "tpr", "fpr")
+plot(perf_nrega)
+abline(0,1)
+
+auc_nrega <- performance(pred_nrega, "auc")
+auc_nrega@y.values
+```
+
+
+WB model
+```{r}
+wb_model_blr <- glm(formula = qty_success ~ poor + hq1 + co17 + assets + co25 + co20 + co44 + co26 + co41 + co16 + co15, family = binomial, data = wb_success)
+
+summary(wb_model_blr)
+```
+
+
+```{r}
+wb_model_blr2 <- glm(formula = qty_success ~ hq1 + co17 + assets + co25 + co20 + co16 + co15, family = binomial, data = wb_success)
+
+summary(wb_model_blr2)
+```
+
+
+```{r}
+odds_ratio_wb_blr <- exp(coef(wb_model_blr2))
+odds_ratio_wb_blr
+```
+
+```{r}
+wb_success$predprob1 <- fitted(wb_model_blr2)
+require(ROCR)
+pred_wb <- prediction(wb_success$predprob1, wb_success$qty_success)
+perf_wb <- performance(pred_wb, "tpr", "fpr")
+plot(perf_wb)
+abline(0,1)
+
+auc_wb <- performance(pred_wb, "auc")
+auc_wb@y.values
+```
+
+```{r}
+require(e1071)
+
+wb_model_nb <- naiveBayes(formula = qty_success ~ hq1 + co17 + assets + co25 + co20 + co16 + co15,data = wb_success, laplace = 2)
+wb_model_nb
+```
+
+```{r}
+wb_success_new <- wb_success[,c("qty_success","hq1", "co17", "assets", "co25", "co20" ,"co16" ,"co15")]
+predict_nb_wb <- predict(wb_model_nb, wb_success_new, type="raw")
+
+head(predict_nb_wb)
+prednb_wb <- prediction(predict_nb_wb[,2], wb_success$qty_success)
+
+perfnb_wb <- performance(prednb_wb, "tpr", "fpr")
+plot(perfnb_wb)
+abline(0, 1)
+
+aucnb_wb <- performance(prednb_wb, "auc")
+aucnb_wb@y.values
+```
+SVM for WB
+```{r}
+wb_model_svm <- svm(formula = qty_success ~ hq1 + co17 + assets + co25 + co20 + co16 + co15, data = wb_success_new, type = "C", probability = TRUE, kernel = "linear")
+
+wb_model_svm
+```
+```{r}
+#Editing the new data frame of hh_nrega with 8759 obs
+hh_nrega2 <- hh_nrega
+```
+

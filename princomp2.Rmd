@@ -1,0 +1,39 @@
+---
+title: "princomp2"
+author: "Saurabh"
+date: "February 19, 2018"
+output: html_document
+---
+```{r}
+require(rio)
+co2_data <- import("ihds2_co1.csv")
+```
+
+```{r}
+glimpse(co2_data)
+```
+
+```{r}
+sum(is.na(co2_data$copc))
+```
+
+```{r}
+co2_data$copc <- NULL
+head(co2_data)
+```
+
+```{r}
+any(is.na(co2_data))
+```
+
+```{r}
+pc_co2_1 <- princomp(formula = ~., data = co2_data, cor = TRUE)
+summary(pc_co2_1)
+```
+
+Sending the loadings to mentors!
+```{r}
+pc_co2_1$loadings
+
+```
+

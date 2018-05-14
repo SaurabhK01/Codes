@@ -1,0 +1,130 @@
+---
+title: "New_model2"
+author: "Saurabh"
+date: "March 10, 2018"
+output: html_document
+---
+
+Importing data
+```{r}
+profile <- import("NEW MODEL.csv") 
+dim(profile)
+
+profile <- tbl_df(profile)
+glimpse(profile)
+
+```
+
+
+```{r}
+require(data.table)
+setnames(profile, names(profile), c("code", "hq1_n", "sa2_n", "sa4_n", "wa2_n", "wa10_n", "fu4_n", "fu1_n", "fu2_n", "fu2_c", "fu3_n", "fu3_c", "nwork_n"))
+```
+
+```{r}
+profile$hq1_n <- factor(profile$hq1_n)
+profile$sa2_n <- factor(profile$sa2_n)
+profile$sa4_n <- factor(profile$sa4_n)
+profile$wa2_n <- factor(profile$wa2_n)
+profile$wa10_n <- factor(profile$wa10_n)
+profile$fu4_n <- factor(profile$fu4_n)
+profile$fu1_n <- factor(profile$fu1_n)
+profile$fu2_c <- factor(profile$fu2_c)
+profile$fu3_c <- factor(profile$fu3_c)
+profile$nwork_n <- factor(profile$nwork_n)
+profile$woe_seg <- factor(profile$woe_seg)
+profile$qty_success <- factor(profile$qty_success)
+profile$Success <- factor(profile$Success)
+```
+
+```{r}
+profile <- hh_nrega3 %>%
+  select(code, state_woe, groups8, poor, qty_success, woe_seg, Success) %>%
+  right_join(profile, by = "code")
+
+```
+
+
+```{r}
+glimpse(profile)
+```
+
+```{r}
+#Removing NAs
+profile2 <- na.omit(profile)
+```
+
+
+```{r}
+library(CHAID)
+profile_chaid <- chaid(formula = qty_success ~ woe_seg + groups8 + poor + hq1_n + sa2_n + sa4_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_c + fu3_c + nwork_n, data = profile2)
+
+plot(profile_chaid, type = "simple")
+```
+
+```{r}
+profile_chaid
+```
+
+
+```{r}
+predtree<-predict(profile_chaid,profile2,type="prob")
+head(predtree)
+library(ROCR)
+pred<-prediction(predtree[,2], profile2$qty_success)
+perf<-performance(pred,"tpr","fpr")
+plot(perf)
+abline(0,1)
+## Area under ROC Curve in R (AUC)
+auc<-performance(pred,"auc")
+auc@y.values
+```
+
+```{r}
+profile_blr <- glm(formula = qty_success ~ woe_seg + groups8 + poor + hq1_n + sa2_n + sa4_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n, data = profile2, family = binomial)
+summary(profile_blr)
+```
+As the income increases for houeholds from NREGA, the chances of that household having shared walls decreases by 92% 
+influencePlot(exp_prop_blr)
+```{r}
+car::vif(profile_blr)
+```
+
+```{r}
+profile2$fitted <- fitted(profile_blr)
+
+head(profile$fitted)
+library(ROCR)
+pred<-prediction(profile2$fitted, profile2$qty_success)
+perf<-performance(pred,"tpr","fpr")
+plot(perf)
+abline(0,1)
+## Area under ROC Curve in R (AUC)
+auc<-performance(pred,"auc")
+auc@y.values
+```
+
+
+```{r}
+success_new <- import("SUCCESS NEW.csv")
+success_new <- success_new[,1:3]
+head(success_new)
+names(success_new) <- c("code", "state", "success_new")
+```
+
+```{r}
+profile <- success_new %>%
+  select(code, success_new) %>%
+  right_join(profile, by = "code")
+```
+
+```{r}
+sum(is.na(profile))
+profile2 <- na.omit(profile)
+```
+
+```{r}
+profile_blr_new <- glm(formula = success_new ~ groups8 + poor + hq1_n + sa2_n + sa4_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n, data = profile2, family = binomial)
+summary(profile_blr_new)
+```
+

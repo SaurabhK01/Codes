@@ -1,0 +1,475 @@
+---
+title: "Renaming Vars 1.0"
+author: "Saurabh"
+date: "January 18, 2018"
+output: html_document
+---
+#Working on my file!
+```{r}
+class(s_vars$new_v)
+
+View(tbl_df(t(s_vars2)))
+
+```
+
+Renaming IHDS2 vars
+FM Variables
+
+```{r}
+#Need to remove NA's before we aggregate the data
+fm_mut <- ihds2_hh %>%
+  select(FM4A : FM7C) 
+
+fm_mut[is.na(fm_mut)] <- 0
+#Creating one more fm variable just for reference
+fm_mut2 <- fm_mut
+fm_mut
+fm_mut2
+
+  
+```
+The above step is not needed since we do not aggregate the the 3 variables into 1 var! Specifically for fm4 variable we'd to calculate the total land owned by a HH, so we have used max as the function
+
+```{r}
+library(dplyr)
+
+ihds2_hh %>%
+  select(FM4A, FM4B, FM4C)
+
+
+fm_df <- data.frame(FM4A = ihds2_hh$FM4A, FM4B = ihds2_hh$FM4B, 
+                    FM4C = ihds2_hh$FM4C)
+fm_df$fm4 <- pmax(FM4A = ihds2_hh$FM4A, FM4B = ihds2_hh$FM4B, 
+                    FM4C = ihds2_hh$FM4C, na.rm = TRUE)
+
+ihds2_hh$fm4 <- fm_df$fm4
+
+
+  #select(as.double(fm4), FM4A, FM4B, FM4C)
+           
+           #pmax(na.rm = TRUE, ihds2_hh %>%
+            #          select(FM4A, FM4B, FM4C))) %>%
+  #select(fm4, FM4A, FM4B, FM4C)
+
+
+library(dplyr)
+head(as.data.frame(ihds2_hh$FM4A, ihds2_hh$FM4B, ihds2_hh$FM4C))
+#head(sapply(, FUN = max, na.rm = TRUE))
+ihds2_hh$FM4A
+
+
+
+fm4mut <- fm_mut %>%
+  mutate(fm4i = (FM4A + FM4B + FM4C)/3) %>%
+  select(fm4i) 
+
+dim(fm4)
+
+sum(ihds2_hh$FM4A != fm4$fm4, na.rm = TRUE)
+
+fm4_z <- which(fm_mut$FM4A != fm4mut) 
+
+length(fm4_z)
+
+fm4i <- ihds2_hh %>%
+  mutate(fm4i = (FM4A + FM4B + FM4C)/3) %>%
+  select(fm4i)
+
+fm4_na <- which(ihds2_hh$FM4A != fm4i$fm4i)
+length(fm4_na)
+
+  
+diff_fm <- setdiff(fm4_z, fm4_na)
+diff_fm
+
+View(ihds2_hh[diff_fm,c("FM4A", "FM4B", "FM4C", "fm4")])
+
+
+```
+
+###Next variable fm8a == FM5A/5B/5C
+
+```{r}
+fm8a <- pmax(ihds2_hh$FM5A, ihds2_hh$FM5B, ihds2_hh$FM5C, na.rm = TRUE)
+
+head(fm8a)
+#Testing the variable fm8a
+head(which(fm8a > 0))
+
+head(which(is.na(fm8a)))
+
+fm8a_z <- data.frame(fm8a, ihds2_hh$FM5A, ihds2_hh$FM5B, ihds2_hh$FM5C)
+
+fm8a_z[which(fm8a > 0),]
+
+fm8a_z[which(is.na(fm8a)),]
+ihds2_hh$fm8a <- fm8a
+```
+
+#fm6a variable from FM6A/6B/6C
+```{r}
+fm6a <- pmax(ihds2_hh$FM6A, ihds2_hh$FM6B, ihds2_hh$FM6C, na.rm = TRUE)
+
+fm6a_z <- data.frame(fm6a, ihds2_hh$FM6A, ihds2_hh$FM6B, ihds2_hh$FM6C)
+
+head(fm6a_z)
+
+head(which(fm6a>0))
+#Testing for more than 0 values
+fm6a_z[which(fm6a>0),]
+#Testing for NA
+fm6a_z[which(is.na(fm6a)),]
+
+ihds2_hh$fm6a <- fm6a 
+
+head(ihds2_hh$fm6a)
+```
+
+#fm9d
+```{r}
+ihds2_hh %>%
+  select(FM12A, FM12B, FM12C)
+```
+
+```{r}
+fm9d <- pmax(ihds2_hh$FM12A, ihds2_hh$FM12B, ihds2_hh$FM12C, na.rm = TRUE)
+
+fm9d_z <- data.frame(fm9d, ihds2_hh$FM12A, ihds2_hh$FM12B, ihds2_hh$FM12C)
+
+head(fm9d_z)
+#Since we can see both NAs and 0's, no need to test them independently.
+
+ihds2_hh$fm9d <- fm9d
+```
+
+```{r}
+fm_var <- import("fm_var.xlsx")
+fm_var <- tbl_df(fm_var)
+
+glimpse(fm_var)
+
+fm_var$Var_new <- tolower(fm_var$Var_new)
+```
+
+```{r}
+fm_all2 <- ihds2_hh %>%
+  select(starts_with("FM"))
+
+fm_all2
+
+library(data.table)
+setnames(fm_all2, fm_var$Var2, fm_var$Var_new)[]
+
+```
+
+Creating a function to rename variables
+```{r}
+rename_variables <- function(a, y) {
+  library(rio)
+  library(dplyr)
+  library(data.table)
+  b <- import(a) %>%
+    tbl_df()
+  b$Var_new <- tolower(b$Var_new)
+  z <- ihds2_hh %>%
+    select(starts_with(y))
+    setnames(x = z, old = b$Var2, new = b$Var_new)
+  z
+}
+```
+
+```{r}
+fu_all2 <- rename_variables(a = "fu_var.xlsx", y = "FU")
+
+fu_all2
+```
+
+Checking IN data consistency in all IN type vars
+```{r}
+head(ihds1_hh$in16a)
+```
+
+
+```{r}
+in_all2 <- rename_variables(a = "in_var.xlsx", y = "IN")
+
+in_all2
+```
+
+Multi_var, too many variables to bypass the function
+
+```{r}
+library(rio)
+multi_var <- import("multi_var.xlsx")
+multi_var <- tbl_df(multi_var)
+multi_var
+```
+
+```{r}
+multi_var$Var_new <- tolower(multi_var$Var_new)
+
+multi_var
+```
+
+```{r}
+library(data.table)
+multi_all2 <- ihds2_hh %>%
+  select(starts_with("DB"), starts_with("ID"), starts_with("GROUPS"), starts_with("TR"), starts_with("LC"), starts_with("HQ"), starts_with("POOR")) %>%
+setnames(multi_var$Var2, multi_var$Var_new)
+multi_all2
+
+```
+
+#Water
+```{r}
+wa_all2 <- rename_variables("wa_var.xlsx", y = "WA")
+wa_all2
+```
+
+#N and Obs
+
+##nchild, nteen variable
+```{r}
+summary(ihds2_hh$NCHILDF) 
+summary(ihds2_hh$NCHILDM)
+
+ihds2_hh$nchild <- ihds2_hh$NCHILDF + ihds2_hh$NCHILDM
+summary(ihds2_hh$nchild)
+
+summary(ihds2_hh$NTEENF)
+summary(ihds2_hh$NTEENM)
+ihds2_hh$nteen <- ihds2_hh$NTEENF + ihds2_hh$NTEENM
+summary(ihds2_hh$nteen)
+
+summary(ihds2_hh$NADULTF)
+summary(ihds2_hh$NADULTM)
+ihds2_hh$nadults <- ihds2_hh$NADULTF + ihds2_hh$NADULTM
+summary(ihds2_hh$nadults)
+
+```
+
+Needs manually working on it
+```{r}
+n_obs_var <- import("n_obs_var.xlsx")
+n_obs_var <- tbl_df(n_obs_var)
+n_obs_var
+```
+
+```{r}
+n_obs_var$Var_new <- tolower(n_obs_var$Var_new)
+n_obs_var
+```
+
+
+```{r}
+n_obs_all2 <- ihds2_hh %>%
+  select(starts_with("N"), starts_with("OH"), -starts_with("NF"), 
+         -starts_with("NWK"), -nrega) %>%
+  setnames(n_obs_var$Var2, n_obs_var$Var_new)
+
+n_obs_all2  
+```
+
+#Consumption
+```{r}
+summary(ihds2_hh$CO16)
+summary(ihds2_hh$CO17)
+
+
+ihds2_hh$co16 <- ihds2_hh$CO16 + ihds2_hh$CO17
+
+summary(ihds2_hh$co16)
+
+summary(ihds2_hh$CO20)
+summary(ihds2_hh$CO21)
+ihds2_hh$co20 <- ihds2_hh$CO20 + ihds2_hh$CO21
+summary(ihds2_hh$co20)
+
+summary(ihds2_hh$CO26)
+summary(ihds2_hh$CO27)
+ihds2_hh$co25 <- ihds2_hh$CO26 + ihds2_hh$CO27 
+summary(ihds2_hh$co25)
+
+summary(ihds2_hh$CO30)
+summary(ihds2_hh$CO30B)
+ihds2_hh$co27 <- ihds2_hh$CO30 + ihds2_hh$CO30B 
+summary(ihds2_hh$co27)
+
+summary(ihds2_hh$CO35)
+summary(ihds2_hh$CO36)
+ihds2_hh$co32 <- ihds2_hh$CO35 + ihds2_hh$CO36 
+summary(ihds2_hh$co32)
+```
+
+```{r}
+co_all2 <- rename_variables("co_var.xlsx", "CO")
+co_all2
+```
+
+#Assets
+```{r}
+unique(ihds2_hh$ASSETS)
+summary(ihds2_hh$ASSETS)
+
+summary(ihds1_hh$HHASSETS)
+
+summary(ihds2_hh$ASSETS2005)
+```
+
+```{r}
+ihds2_hh$assets <- ihds2_hh$ASSETS
+```
+
+```{r}
+cg_all2 <- rename_variables("cg_var.xlsx", "CG")
+cg_all2
+```
+
+
+```{r}
+unique(ihds1_hh$RC1)
+
+
+table(ihds1_hh$RC1)
+ihds1_hh$RC1 <- ifelse(ihds1_hh$RC1 == 1, TRUE, FALSE)
+
+ihds2_hh$RC1 <- ifelse(ihds2_hh$RC1 == "(1) Yes 1", TRUE, FALSE)
+
+summary(ihds1_hh$RC1)
+summary(ihds2_hh$RC1)
+
+unique(ihds2_hh$RC1)
+```
+
+```{r}
+unique(ihds1_hh$RC1A)
+
+unique(ihds2_hh$RC1A)
+```
+
+```{r}
+ihds1_hh$RC1A <- ifelse(ihds1_hh$RC1A == "(1) BPL", "BPL", 
+                        ifelse(ihds1_hh$RC1A == "(3) Antodaya", "Antodaya", ifelse(ihds1_hh$RC1A == "(2) Standard/APL","Standard/APL", ifelse(ihds1_hh$RC1A == "NA", "NA", "Annapurna" ))))
+
+ihds1_hh$RC1A <- factor(ihds1_hh$RC1A)
+
+summary(ihds1_hh$RC1A)
+```
+
+```{r}
+ihds2_hh$rc1a <- ifelse(ihds2_hh$RC1B1 == "(1) Yes", "BPL", 
+                        ifelse(ihds2_hh$RC1B3 == "(1) Yes", "Antodaya", ifelse(ihds2_hh$RC1B2 == "(1) Yes","Standard/APL", ifelse(ihds2_hh$RC1B4 == "(1) Yes", "Annapurna","NA" ))))
+
+length(ihds2_hh$rc1a)
+
+ihds2_hh$rc1a <- factor(ihds2_hh$rc1a)
+summary(ihds2_hh$rc1a)
+```
+
+```{r}
+hh_rc_var <- import("hh_rc_var.xlsx")
+hh_rc_var
+```
+
+```{r}
+hh_rc_var$Var_new <- tolower(hh_rc_var$Var_new)
+hh_rc_var
+```
+
+```{r}
+hh_rc_all2 <- ihds2_hh %>%
+  select(starts_with("HHEDUC"), starts_with("RC")) %>%
+  setnames(hh_rc_var$Var2, hh_rc_var$Var_new)
+```
+
+```{r}
+hh_rc_all2
+```
+
+#Non Farming
+
+```{r}
+nf_all2 <- rename_variables("nf_var.xlsx", "NF")
+nf_all2
+```
+
+#Animals
+```{r}
+an_all2 <- rename_variables("an_var.xlsx", "AN")
+an_all2
+```
+
+#Membership
+```{r}
+me_all2 <- rename_variables("me_var.xlsx", "ME")
+me_all2
+```
+
+#Marriage Practices
+```{r}
+mp_all2 <- rename_variables("mp_var.xlsx", "MP")
+mp_all2
+```
+
+#Sanitation
+```{r}
+unique(ihds1_hh$SA2A)
+table(ihds1_hh$SA2A)
+unique(ihds2_hh$SA2A)
+```
+Not using SA2A variable in the joint data frame.
+
+```{r}
+sa_all2 <- rename_variables("sa_var.xlsx", "SA")
+sa_all2
+```
+
+#Employment
+```{r}
+ihds1_hh$NWKNREGA <- 0
+
+ihds1_hh$NWKNONNREGA <- 0
+```
+
+
+```{r}
+emp_all2 <- rename_variables("emp_var.xlsx", "NWK")
+emp_all2
+```
+
+Changing the variable names to lower case in IHDS 1
+```{r}
+setnames(ihds1_hh, names(ihds1_hh), tolower(names(ihds1_hh)))
+head(ihds1_hh)
+```
+
+```{r}
+cng_id_var <- import("cng_id_var.xlsx")
+cng_id_var <- tbl_df(cng_id_var)
+
+cng_id_var$Var_new <- tolower(cng_id_var$Var_new)
+cng_id_var
+```
+
+```{r}
+cng_all2 <- ihds2_hh %>%
+  select(SURVEY:IDHH, DIST01, METRO6, URBAN2011, sid, nrega, assets) %>%
+  setnames(cng_id_var$Var2, cng_id_var$Var_new)
+cng_all2
+```
+
+
+```{r}
+unique(ihds2_hh$URBAN2011)
+
+unique(ihds2_hh$URBAN4_2011)
+
+unique(ihds1_hh$urban)
+
+```
+
+
+Summary:
+1.) So far we've renamed FM, FU, IN, INC, DB, ID, GROUPS, TR, LC, HQ, POOR, WA, N, OH, CO, ASSETS, CG, RC, HHED, NF, AN, ME, MP,
+SA, NWORK, C & G Id type.
+2.) In addition to this we'll require survey, sid, distid, psuid, hhid, hhsplitid, code, nrega, assets for the combined dataset.  

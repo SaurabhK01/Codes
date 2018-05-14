@@ -1,0 +1,34 @@
+---
+title: "Anamoly"
+author: "Saurabh"
+date: "January 20, 2018"
+output: html_document
+---
+
+
+
+```{r}
+table(hhy_small$hhsplitid.y)
+```
+We can see here that there are 20 more HH which are branching further into HHSPLITID, for Final presentation we must remove them in Long HH data.
+
+
+```{r}
+anomaly <- hhy_small %>%
+  filter(hhsplitid.y %in% c(2,3,4)) %>%
+  select(code)
+```
+
+```{r}
+ihds1_hh %>%
+  filter(code == 31603111) %>%
+  select(starts_with("ID"))
+```
+
+
+Checking specific data in the main file
+```{r}
+ihds2_hh %>%
+  filter(code == 31603111)
+```
+There's only one observation! That does mean that 20 such rows are merely an anamoly in the dataset. Need to further check.

@@ -1,0 +1,299 @@
+---
+title: "Model1"
+author: "Saurabh"
+date: "March 5, 2018"
+output: html_document
+---
+
+Getting the success variable and then joinning with the data
+
+```{r}
+require(ggplot2)
+require(dplyr)
+require(rio)
+
+hh_nrega <- import("hh_nrega.rda")
+hh_nrega <- tbl_df(hh_nrega)
+hhy_new1 <- import("hh_new2_1.rda")
+hhy_new1 <- tbl_df(hhy_new1)
+
+```
+
+```{r}
+hh_nrega$qty_success <- factor(hh_nrega$qty_success)
+```
+
+
+```{r}
+require(randomForest)
+qty_mdl_rm <- randomForest(qty_success ~ groups8 + nwork + assets + hhed5f + hhed5adult + hhed5m + incsalary + debt_p5, data = hh_nrega, mtry = 2, ntree = 100, importance = TRUE, cutoff = c(0.60, 0.40), na.action = na.roughfix)
+
+qty_mdl_rm$importance
+varImpPlot(qty_mdl_rm, col = "maroon")
+```
+Here we can see hhed5adult, hhed5m, hhed5f, assets and groups8 being important variables.
+
+```{r}
+qty_mdl_blr <- glm(qty_success ~ groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_nrega, family = binomial)
+
+summary(qty_mdl_blr)
+```
+The output is tough to read, better if we can reduce the levels of education variables
+
+Shortening the HHED levels
+```{r}
+adult <- as.data.frame(table(hhy_new1$hhed5adult))
+male <- as.data.frame(table(hhy_new1$hhed5m))
+female <- as.data.frame(table(hhy_new1$hhed5f))
+
+#Observing the data together
+data.frame(ed = adult[,1], adult_freq = adult[,2], male_freq = male[,2], female_freq = female[,2])
+```
+
+```{r}
+
+ed_relevel <- function(x){
+if(x %in% c("(00) none 0")) {
+  y <- c("No_ed")
+} else if(x %in% c("(01) 1st class 1","(02) 2nd class 2", "(03) 3rd class 3", "(04) 4th class 4")) {
+  y <- c("primary")
+} else if(x %in% c("(05) 5th class 5", "(06) 6th class 6", "(07) 7th class 7", "(08) 8th class 8", "(09) 9th class 9", "(10) Secondary 10")) {
+  y <- c("secondary")
+} else if(x %in% c("(10) Secondary 10", "(11) 11th Class 11")) {
+    y <- ("jr-college")
+} else if(x %in% c("(13) 1 year post-secondary", "(14) 2 years post-secondary", "(15) Bachelors 15")){
+  y <- c("sr-college")
+} else {
+  y <- c("No_ed")
+}
+dt <- y}
+```
+
+```{r}
+ed_male <- data.frame(ed_male = sapply(hhy_new1$hhed5m, ed_relevel))
+hhy_new1$ed_male <- tbl_df(ed_male)
+
+ed_female <- data.frame(ed_female = sapply(hhy_new1$hhed5f, ed_relevel))
+hhy_new1$ed_female <- tbl_df(ed_female)
+
+ed_adult <- data.frame(ed_adult = sapply(hhy_new1$hhed5m, ed_relevel))
+hhy_new1$ed_adult <- tbl_df(ed_adult)
+```
+Somehow the data is not getting joined here! I'm getting an error
+The hhy_new1 dataframe is getting replaced by something else
+
+
+```{r}
+
+```
+
+
+```{r}
+#hhy_new1 %>%
+#  semi_join(hh_nrega, by = "code") %>%
+#  select(hhed5adult, ed_adult, hhed5f, ed_female, hhed5m, ed_male)
+```
+Error: Error in `[.data.frame`(X[[i]], ...) : undefined columns selected
+
+
+So using the data which Prashant has sent
+```{r}
+library(rio)
+ed_data <- import("ed_data.xlsx")
+ed_data <- tbl_df(ed_data)
+glimpse(ed_data)
+
+require(data.table)
+
+setnames(ed_data, names(ed_data), c("code", "hhed5adult", "ed_adult", "hhed5f", "ed_f", "hhed5m", "ed_m"))
+glimpse(ed_data)
+```
+
+```{r}
+hh_nrega <- ed_data %>%
+  select(code, ed_adult, ed_f, ed_m) %>%
+  right_join(hh_nrega, by = "code")
+
+hh_nrega$ed_adult <- factor(hh_nrega$ed_adult)
+hh_nrega$ed_f <- factor(hh_nrega$ed_f)
+hh_nrega$ed_m <- factor(hh_nrega$ed_m)
+```
+
+
+```{r}
+require(randomForest)
+
+qty_mdl_rm1 <- randomForest(qty_success ~ groups8 + nwork + assets + ed_adult + income + debt_p5 + poor + metro6 + urban + wa2 + wa2a + co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47 + fu1 + hq1, data = hh_nrega, mtry = 2, ntree = 400, importance = TRUE, cutoff = c(0.60, 0.40), na.action = na.roughfix)
+
+qty_mdl_rm1$importance
+varImpPlot(qty_mdl_rm1, col = "maroon")
+```
+
+```{r}
+qty_mdl_rm_cg <- randomForest(qty_success ~ cg2 + cg3 + cg4 + cg5 + cg6 + cg7 + cg8 + cg9 + cg10 + cg11 + cg12 + cg13 + cg14 + cg15 + cg16 + cg17 + cg18 + cg19 + cg20 + cg21 + cg22 + cg23 + cg24 + lc1 + lc2 + lc3, data = hh_nrega, mtry = 2, ntree = 400, importance = TRUE, cutoff = c(0.60, 0.40), na.action = na.roughfix)
+
+qty_mdl_rm_cg$importance
+varImpPlot(qty_mdl_rm_cg, col = "maroon")
+```
+
+Understanding the proportion of Nrega vs Non Nrega hhs in the dataset
+```{r}
+hh_prop_st2 <- hhy_new1 %>%
+  filter(nrega == TRUE) %>%
+  group_by(stateid) %>%
+  summarise(hh_nrega = n()) %>%
+    left_join(hhy_new1 %>%
+                filter(nrega == FALSE) %>%
+    group_by(stateid) %>%
+    summarise(hh_non = n()), by = "stateid") %>%
+    mutate(prop = round(hh_nrega/(hh_nrega + hh_non), 2))
+hh_prop_st2 
+```
+
+
+
+Stepwise regression for MP
+```{r}
+mp_succes <- hh_nrega %>%
+  filter(stateid == "(23) Madhya Pradesh 23") %>%
+  select(-metro6)
+dim(mp_succes)
+```
+
+
+```{r}
+sum(is.na(mp_succes$copc))
+sum(is.na(mp_succes$poor))
+sum(is.na(mp_succes$assets))
+sum(is.na(mp_succes$wa2))
+sum(is.na(mp_succes$ed_adult))
+sum(is.na(mp_succes$groups8))
+sum(is.na(mp_succes$income))
+sum(is.na(mp_succes$fu1))
+sum(is.na(mp_succes$metro6))
+sum(is.na(mp_succes$hq1))
+```
+```{r}
+mp_succes$co30 <- replace(mp_succes$co30, which(is.na(mp_succes$co30)), median(mp_succes$co30, na.rm = TRUE))
+mp_succes$co37 <- replace(mp_succes$co37, which(is.na(mp_succes$co37)), median(mp_succes$co37, na.rm = TRUE))
+
+which(is.na(mp_succes$wa2))
+which(is.na(mp_succes$hq1))
+mp_succes <- mp_succes[-c(788, 73),]
+```
+
+```{r}
+null <- glm(qty_success ~ 1, family = binomial, data = mp_succes)
+full <- glm(qty_success ~ co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47 + poor + assets + wa2 + ed_adult + groups8 + income + fu1 + hq1, data = mp_succes, family = binomial)
+
+step(null, scope = list(lower = null, upper = full), direction = "forward")
+```
+
+
+```{r}
+wb_success <- hh_nrega %>%
+  filter(stateid == "(19) West Bengal 19")
+dim(wb_success)
+```
+
+
+```{r}
+sum(is.na(wb_success$copc))
+sum(is.na(wb_success$poor))
+sum(is.na(wb_success$assets))
+sum(is.na(wb_success$wa2))
+sum(is.na(wb_success$ed_adult))
+sum(is.na(wb_success$groups8))
+sum(is.na(wb_success$income))
+sum(is.na(wb_success$fu1))
+sum(is.na(wb_success$metro6))
+sum(is.na(wb_success$hq1))
+```
+
+```{r}
+wb_success <- wb_success[-which(is.na(wb_success$hq1)),]
+dim(wb_success)
+```
+
+
+```{r}
+null <- glm(qty_success ~ 1, family = binomial, data = wb_success)
+full <- glm(qty_success ~ co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47 + poor + assets + wa2 + ed_adult + groups8 + income + fu1 + hq1, data = wb_success, family = binomial)
+
+step(null, scope = list(lower = null, upper = full), direction = "forward")
+```
+
+Rajasthan
+```{r}
+rj_success <- hh_nrega %>%
+  filter(stateid == "(08) Rajasthan 08")
+dim(rj_success)
+```
+
+```{r}
+sum(is.na(rj_success$copc))
+sum(is.na(rj_success$poor))
+sum(is.na(rj_success$assets))
+sum(is.na(rj_success$wa2))
+sum(is.na(rj_success$ed_adult))
+sum(is.na(rj_success$groups8))
+sum(is.na(rj_success$income))
+sum(is.na(rj_success$fu1))
+sum(is.na(rj_success$metro6))
+sum(is.na(rj_success$hq1))
+```
+
+```{r}
+rj_success <- rj_success[-which(is.na(rj_success$hq1)),]
+dim(rj_success)
+```
+
+```{r}
+null <- glm(qty_success ~ 1, family = binomial, data = rj_success)
+full <- glm(qty_success ~ co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47 + poor + assets + wa2 + ed_adult + groups8 + income + fu1 + hq1, data = rj_success, family = binomial)
+
+step(null, scope = list(lower = null, upper = full), direction = "forward")
+```
+
+AP
+```{r}
+ap_success <- hh_nrega %>%
+  filter(stateid == "(28) Andhra Pradesh 28")
+```
+
+
+```{r}
+sum(is.na(ap_success$copc))
+sum(is.na(ap_success$poor))
+sum(is.na(ap_success$assets))
+sum(is.na(ap_success$wa2))
+sum(is.na(ap_success$ed_adult))
+sum(is.na(ap_success$groups8))
+sum(is.na(ap_success$income))
+sum(is.na(ap_success$fu1))
+sum(is.na(ap_success$metro6))
+sum(is.na(ap_success$hq1))
+```
+```{r}
+ap_success$assets <- replace(ap_success$assets, which(is.na(ap_success$assets)), median(ap_success$assets, na.rm = TRUE))
+ap_success$co20 <- replace(ap_success$co20, which(is.na(ap_success$co20)), median(ap_success$co20, na.rm = TRUE))
+ap_success$co28 <- replace(ap_success$co28, which(is.na(ap_success$co28)), median(ap_success$co28, na.rm = TRUE))
+which(is.na(ap_success$wa2))
+
+which(is.na(ap_success$fu1))
+which(is.na(ap_success$hq1))
+```
+
+```{r}
+ap_success <- ap_success[-which(is.na(ap_success$hq1)),]
+dim(ap_success)
+```
+
+
+```{r}
+null <- glm(qty_success ~ 1, family = binomial, data = ap_success)
+full <- glm(qty_success ~ co15 + co16 + co17 + co18 + co19 + co20 + co21 + co22 + co23 + co24 + co25 + co26 + co27 + co28 + co29 + co30 + co31 + co32 + co33 + co34 + co35 + co36 + co37 + co38 + co39 + co40 + co41 + co42 + co43 + co44 + co45 + co46 + co47 + assets + wa2 + ed_adult + groups8 + income + fu1 + hq1, data = ap_success, family = binomial)
+
+step(null, scope = list(lower = null, upper = full), direction = "forward")
+```
+

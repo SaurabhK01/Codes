@@ -1,0 +1,126 @@
+---
+title: "Glimpse Data"
+author: "Saurabh"
+date: "January 11, 2018"
+output: html_document
+---
+#DATA from IHDS1 & 2
+This is the phase1 of data importing
+
+##Importing Data
+```{r}
+library(rio)
+ihds1_hh <- import("22626-0002-Data.rda")
+
+ihds2_hh <- import("36151-0002-Data.rda")
+```
+
+
+###Creating sid of data1 & data2 from StateId
+```{r}
+library(dplyr)
+ihds1_hh$sid <- unlist(regmatches(ihds1_hh$STATEID,gregexpr("(*[0-9].)", ihds1_hh$STATEID)))
+
+glimpse(ihds1_hh$sid)
+
+ihds2_hh$sid <- gsub(".*[a-z|A-Z]\\s", "", ihds2_hh$STATEID)
+glimpse(ihds2_hh$sid)
+```
+
+# Getting Unique HH Code
+###Getting the Unique ID Variables ready for further process
+```{r}
+ihds1_hh$sid <- as.numeric(ihds1_hh$sid)
+ihds2_hh$sid <- as.numeric(ihds2_hh$sid)
+ihds1_hh$DISTID <- as.numeric(ihds1_hh$DISTID)
+ihds2_hh$DISTID <- as.numeric(ihds2_hh$DISTID)
+ihds1_hh$PSUID <- as.numeric(ihds1_hh$PSUID)
+ihds2_hh$PSUID <- as.numeric(ihds2_hh$PSUID)
+ihds1_hh$HHID <- as.numeric(ihds1_hh$HHID)
+ihds2_hh$HHID <- as.numeric(ihds2_hh$HHID)
+ihds1_hh$HHSPLITID <- as.numeric(ihds1_hh$HHSPLITID)
+ihds2_hh$HHSPLITID <- as.numeric(ihds2_hh$HHSPLITID)
+```
+
+###Creating a new dataset of Unique Identifers
+```{r}
+library(dplyr)
+ihds1_hh <- tbl_df(ihds1_hh)
+ihds2_hh <- tbl_df(ihds2_hh)
+
+id1 <- ihds1_hh %>%
+  select(STATEID:IDHH, sid)
+
+id2 <- ihds2_hh %>%
+  select(STATEID:IDHH, sid)
+```
+
+###Formula
+```{r}
+id1$code <- id1$sid*10000000 + id1$DISTID*100000 + id1$PSUID*1000 + id1$HHID*10 + id1$HHSPLITID
+
+id2$code <- id2$sid*10000000 + id2$DISTID*100000 + id2$PSUID*1000 + id2$HHID
+
+glimpse(id1)
+glimpse(id2)
+```
+
+###Attaching Unique code id to data
+```{r}
+ihds1_hh$code <- id1$code
+ihds2_hh$code <- id2$code
+```
+
+###Survey id in IHDS 1 and 2
+```{r}
+ihds1_hh$SURVEY <- "1"
+
+ihds2_hh$SURVEY <- gsub(".*[a-z|A-Z]\\s", "", ihds2_hh$SURVEY)
+```
+
+#Nrega specific data
+```{r}
+unique(ihds2_hh$IN16)
+
+unique(ihds2_hh$NWKNREGA)
+
+sum(ihds2_hh$NWKNREGA > 0)
+
+summary(ihds2_hh$IN16)
+
+sum(ihds2_hh$IN16 > 0, na.rm = TRUE)
+
+sum(ihds2_hh$INCNREGA > 0)
+
+table(ihds2_hh$IN25)
+```
+o/p1: So, we have got a max of 5 members in an HH who possess NREGA Jobcards
+o/p2: A maximum of 5 members from the family have worked for NREGA in last one year
+o/p3: We can see around 3311 HH have members worked for NREGA
+o/p4: Summarizing the variable IN16 (No of Jobcards in a family) to understand no. of NA's. Unsbstantial amount: 74, can be ignored and can be considered as not working with NREGA
+o/p5: No. of HHs who have jobcards
+o/p6: No. of HHs who have got payed for NREGA
+o/p7: No. of HHs who have worked for NREGA but still haven't got payed
+
+
+###NREGA variable
+```{r}
+ihds1_hh$nrega <- FALSE
+
+ihds2_hh$nrega <- ifelse(ihds2_hh$IN16 > 0, TRUE, FALSE)
+
+sum(ihds2_hh$nrega, na.rm = TRUE)
+```
+
+
+#Data IHDS1 HH
+```{r}
+glimpse(ihds1_hh)
+```
+
+
+#Data IHDS2 HH
+```{r}
+glimpse(ihds2_hh)
+```
+

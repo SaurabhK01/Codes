@@ -1,0 +1,151 @@
+---
+title: "Intersect1.1"
+author: "Saurabh"
+date: "January 17, 2018"
+output: html_document
+---
+
+#Main Intersect between the 2 datasets
+```{r}
+ihds1_hh %>%
+  select(code) %>%
+  intersect(ihds2_hh %>%
+              select(code))
+```
+There are 36751 Observation which are common in IHDS 1 and IHDS 2, these common observations include Split as well as Replaced HH. 
+So we need to further dive into the dataset to get common non split as well as non replaced HHs
+
+#Common HH from both the surveys excluding Replaced HH (HHSPLITID = 9)
+```{r}
+ihds1_hh %>%
+  select(code) %>%
+  intersect(ihds2_hh %>%
+              filter(HHSPLITID != 9) %>%
+              select(code))
+```
+We get 34643 HHs which are common, which might have split but doen't contain
+Replaced HHs
+
+#Common HH from both the surveys excluding Replaced HH as well as Non Split HH
+###Non split HHs in IHDS II
+We can find the intact HH via IHDS II
+Technique: We can find the frequency of a certain HH code getting repeated by table function and filtering only those which have a frequency of 1.
+```{r}
+##Getting the frequency table
+code_table <- table(as.character(ihds2_hh$code)) 
+class(code_table)  
+head(code_table)
+```
+
+```{r}
+#Prepping the freq table for further assessment
+code_table <- tbl_df(code_table)
+names(code_table) <- c("code", "Freq")
+code_table$code <- as.numeric(code_table$code)
+code_table$Freq <- as.factor(code_table$Freq)
+code_table
+
+#Arranging codes in ascending order
+code_table <- code_table[order(code_table$code),]
+code_table
+```
+Above is an ordered frequency table coerced into a Tibble dataframe. 
+
+###Estimated number of Non split HHs
+```{r}
+table(code_table$Freq)      #With Freq 1
+```
+We can see that there are 32596 HHs which have a frquency of 1, i.e. HHs which did not split at all, they may contain replaced HHs too
+
+```{r}
+#Tallying the count!
+32596 + 3219*2 + 771*3 + 155*4 + 31*5 + 5*6   #Total HH
+
+3219*2 + 771*3 + 155*4 + 31*5 + 5*6           #Total Split HH
+
+dim(ihds2_hh)
+```
+
+###Understanding SPLITID Distribution in Survey 2
+```{r}
+table(ihds2_hh$HHSPLITID)
+```
+
+```{r}
+4180 + 978 + 193 + 39 + 7 #= 5397
+9556 - 5397 #= 4159 HHs in 34621 HHs are split HHs with Split Id "1" 
+#Hence 
+34621 - 4159 #= 30462
+```
+
+
+
+###Filtering the replaced HHs from the Freq table data
+
+```{r}
+tbl_df(code_table) %>%
+  filter(Freq == 1) %>%
+  select(code) %>%
+  setdiff(ihds2_hh %>%
+              filter(HHSPLITID == 9) %>%
+              select(code))
+```
+When we remove Replaced HH we get 30462 HHs which are not split
+
+#Understanding the NREGA Employees Distribution
+
+```{r}
+#Total Nrega employed HHs in IHDS2
+summary(ihds2_hh$nrega)
+```
+In the sample of 42152 we have 11968 HHs which are employed under NREGA
+
+```{r}
+table(nrega = ihds2_hh$nrega, split = ihds2_hh$HHSPLITID)
+```
+
+
+#NREGA employed HHs which are Intact as well as not replaced
+
+Now we'll be checking for those HHs which are enrolled under NREGA and are neither Split nor Replaced
+```{r}
+code_table %>%
+  filter(Freq == 1) %>%
+  select(code) %>%
+  setdiff(ihds2_hh %>%
+            filter(HHSPLITID == 9) %>%
+            select(code)) %>%
+  intersect(ihds2_hh %>%
+              filter(nrega == TRUE) %>%
+              select(code))
+```
+8850 HHs which are under NREGA and have neither split nor have been replaced.
+
+```{r}
+#Checking Specific Data which is TRUE for NREGA
+View(ihds2_hh[which(ihds2_hh$code == 10202010),])
+```
+
+#Find NREGA Employed HHs from IHDS 2 in IHDS 1
+Now using the above data we'll find out NREGA employed HHs frmo Data 2 in Data 1 
+```{r}
+code_table %>%
+  filter(Freq == 1) %>%
+  select(code) %>%
+  setdiff(ihds2_hh %>%
+            filter(HHSPLITID == 9) %>%
+            select(code)) %>%
+  intersect(ihds2_hh %>%
+              filter(nrega == TRUE) %>%
+              select(code)) %>%
+  intersect(tbl_df(ihds1_hh %>%
+                     select(code)))
+```
+So in all we have 8850 HHs which are common in Survey 1 and 2 and are those HHs which have neither split nor have been replaced.
+
+#Summary:
+36751 total common HH in IHDS 1 & IHDS 2 (Contains Split as well as replaced)
+34643 common HH excluding replaced HHs only
+32596 HHs in IHDS 2 which are intact (not split) but contain replaced HHs
+30462 HHs in IHDS 2 which haven't split and doesn't have replaced HHs 
+8850 HHs are NREGA employed as well as not split & not replaced in IHDS 2 as well as in the intersect of IHDS 1 and IHDS 2. 

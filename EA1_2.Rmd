@@ -1,0 +1,54 @@
+---
+title: "EA1.2"
+author: "Saurabh"
+date: "January 16, 2018"
+output: html_document
+---
+
+##Unique States
+```{r}
+unique(ihds1_hh$STATEID)
+
+unique(ihds2_hh$STATEID)
+```
+
+##Urban vs Rural
+```{r}
+table(Urban1 = ihds1_hh$URBAN)
+
+table(urban2 = ihds2_hh$URBAN2011)
+```
+
+##Metro Obs
+```{r}
+table(Metro1 = ihds1_hh$METRO6)
+table(Metro2 = ihds2_hh$METRO6)
+```
+
+###Urban Vs Rural Income
+```{r}
+aggregate(INCOME~URBAN, data = ihds1_hh, FUN = sum)
+
+aggregate(INCOME~URBAN2011, data = ihds2_hh, FUN = sum)
+```
+
+###Income vs Assets
+```{r}
+car::Boxplot(ihds1_hh$COPC)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+ihds1_hh %>%
+  ggplot(aes(x = HHASSETS, y = INCOME/100)) +
+  geom_point()
+```
+
+
+
+#Religion wise Job Card Distribution
+```{r}
+table()
+```
+

@@ -1,0 +1,366 @@
+---
+title: "New_Success"
+author: "Saurabh"
+date: "March 10, 2018"
+output: html_document
+---
+
+```{r}
+require(dplyr)
+
+hh_nrega3 %>%
+  select(code, starts_with("inc"))
+```
+
+```{r}
+sum(hh_nrega3$incnrega>0)
+sum(is.na(hh_nrega3$incnrega))
+sum(is.na(hh_nrega3$income))
+sum(hh_nrega3$income < 0)
+
+table(nrega_paid = hh_nrega3$incnrega > 0, success = hh_nrega3$qty_success)
+table(hh_nrega3$qty_success)
+```
+
+```{r}
+inc_nrega_prop <- hh_nrega3 %>%
+  select(code, starts_with("inc")) %>%
+  mutate(nrega_inc_prop = incnrega/income) %>%
+  select(incnrega, income, nrega_inc_prop) 
+
+inc_nrega_prop
+inc_nrega_prop$nrega_inc_prop <- replace(inc_nrega_prop$nrega_inc_prop, which(is.nan(inc_nrega_prop$nrega_inc_prop)), 0)
+```
+
+Importing data from Prashant
+
+```{r}
+require(rio)
+success_8732 <- import("Success_8732.csv")
+```
+
+
+
+```{r}
+hh_nrega3 <- hh_nrega3 %>%
+  left_join(success_8732, by = "code")
+
+hh_nrega3$Success <- as.factor(hh_nrega3$Success)
+```
+
+```{r}
+hh_nrega3$co10a <- replace(hh_nrega3$co10a, which(is.na(hh_nrega3$co10a)), 0)
+
+hh_nrega3$co11a <- replace(hh_nrega3$co11a, which(is.na(hh_nrega3$co11a)), 0)
+
+hh_nrega3$co12a <- replace(hh_nrega3$co12a, which(is.na(hh_nrega3$co12a)), 0)
+
+
+
+hh_nrega3$co1a <- replace(hh_nrega3$co1a, which(is.na(hh_nrega3$co1a)), 0)
+
+hh_nrega3$co1d <- replace(hh_nrega3$co1d, which(is.na(hh_nrega3$co1d)), 0)
+
+
+hh_nrega3$co2a <- replace(hh_nrega3$co2a, which(is.na(hh_nrega3$co2a)), 0)
+
+hh_nrega3$co2d <- replace(hh_nrega3$co2d, which(is.na(hh_nrega3$co2d)), 0)
+
+
+hh_nrega3$co3a <- replace(hh_nrega3$co3a, which(is.na(hh_nrega3$co3a)), 0)
+
+hh_nrega3$co3d <- replace(hh_nrega3$co3d, which(is.na(hh_nrega3$co3d)), 0)
+
+hh_nrega3$co4a <- replace(hh_nrega3$co4a, which(is.na(hh_nrega3$co4a)), 0)
+
+hh_nrega3$co4d <- replace(hh_nrega3$co4d, which(is.na(hh_nrega3$co4d)), 0)
+
+hh_nrega3$co5a <- replace(hh_nrega3$co5a, which(is.na(hh_nrega3$co5a)), 0)
+
+hh_nrega3$co5d <- replace(hh_nrega3$co5d, which(is.na(hh_nrega3$co5d)), 0)
+
+hh_nrega3$co7a <- replace(hh_nrega3$co7a, which(is.na(hh_nrega3$co7a)), 0)
+
+hh_nrega3$co8a <- replace(hh_nrega3$co8a, which(is.na(hh_nrega3$co8a)), 0)
+
+hh_nrega3$co9a <- replace(hh_nrega3$co9a, which(is.na(hh_nrega3$co9a)), 0)
+```
+
+```{r}
+hh_nrega3 <- import("hh_nrega3.rda")
+```
+
+
+```{r}
+hh_nrega3$hq1 <- relevel(hh_nrega3$hq1, "(2) House with shared walls 2")
+hh_nrega3$groups8 <- relevel(hh_nrega3$groups8, "(2) Forward caste 2")
+```
+
+
+```{r}
+exp_prop_blr <- glm(Success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + co1a + co2a + co3a + co4a + co5a + co7a + co8a + co9a + co10a + co11a + co12a + debt_p5 + hq1 + poor, data = hh_nrega3, family = binomial)
+
+summary(exp_prop_blr)
+```
+
+```{r}
+hh_nrega3$pred_exp <- fitted(exp_prop_blr)
+
+require(ROCR)
+pred_prop_exp <- prediction(hh_nrega3$pred_exp, hh_nrega3$Success)
+perf_prop_exp <- performance(pred_prop_exp, "tpr", "fpr")
+plot(perf_prop_exp)
+abline(0,1)
+
+auc_prop_exp <- performance(pred_prop_exp, "auc")
+auc_prop_exp@y.values
+```
+
+```{r}
+table(hh_nrega3$Success)
+table(hh_nrega3$qty_success)
+```
+
+```{r}
+as.data.frame(exp(coef(exp_prop_blr)))
+```
+
+```{r} As the income increases for houeholds from NREGA, the chances of that household having shared walls decreases by 92% 
+influencePlot(exp_prop_blr)
+
+The odds of assets 
+As the consumption of assets increases
+17% increase in the odds of being in an honors class, for a one-unit increase in math score
+Relative
+
+For Nrega HH
+11% increase in the odds of consumption increase, when the hh belonged to Adivasi relative Forward caste
+98% decrease in the odds of consumption increase, for a one unit increase in assets
+74% increase in the odds of consumption increase, for a one unit increase in n people working in HH
+40% decrease in the odds of consumption increase, when the hh was residing in Chawl relative House with no shared walls
+
+```{r}
+null <- glm(Success ~ 1, data = hh_nrega3, family = binomial)
+full <- glm(Success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + co1a + co2a + co3a + co4a + co5a + co7a + co8a + co10a + co11a + co12a + debt_p5 + hq1 + poor, data = hh_nrega3, family = binomial)
+
+step(null, scope = list(lower = null, upper = full), direction = "forward")
+```
+
+Data2
+```{r}
+new_var <- import("New variables_NREGA.csv")
+glimpse(new_var)
+```
+
+```{r}
+new_var <- profile %>%
+  select(code, qty_success, success_new) %>%
+  right_join(new_var, by = "code")
+
+new_var <- profile %>%
+  select(code, state_woe) %>%
+  right_join(new_var, by = "code")
+
+new_var <- profile %>%
+  select(code, poor, groups8) %>%
+  right_join(new_var, by = "code")
+
+```
+
+
+```{r}
+setnames(new_var, names(new_var), c("code", "qty_success", "success_new", "ag_tot_n", "ag_inc_n", "hq4_n", "co30_n", "co31_n", "co32_n", "co33_n", "sa2_n", "sa4_n", "wa2_n", "wa10_n", "fu4_n", "fu1_n", "fu2_n", "fu2_c", "fu3_n", "fu3_c", "nwork_n"))
+```
+
+```{r}
+new_var2 <- na.omit(new_var)
+```
+
+
+
+```{r}
+new_var$ag_inc_n <- factor(new_var$ag_inc_n)
+new_var$hq4_n <- factor(new_var$hq4_n)
+new_var$sa2_n <- factor(new_var$sa2_n)
+new_var$sa4_n <- factor(new_var$sa4_n)
+new_var$wa2_n <- factor(new_var$wa2_n)
+new_var$wa10_n <- factor(new_var$wa10_n)
+new_var$fu4_n <- factor(new_var$fu4_n)
+new_var$fu1_n <- factor(new_var$fu1_n)
+new_var$fu2_c <- factor(new_var$fu2_c)
+new_var$fu3_c <- factor(new_var$fu3_c)
+new_var$nwork_n <- factor(new_var$nwork_n)
+
+new_var$hq4_n <- relevel(new_var$hq4_n, "No change")
+new_var$sa2_n <- relevel(new_var$sa2_n, "No change")
+new_var$sa4_n <- relevel(new_var$sa4_n, "No change")
+new_var$wa2_n <- relevel(new_var$wa2_n, "No change")
+new_var$wa10_n <- relevel(new_var$wa10_n, "No change")
+new_var$fu4_n <- relevel(new_var$fu4_n, "No change")
+new_var$fu1_n <- relevel(new_var$fu1_n, "No change")
+new_var$fu2_c <- relevel(new_var$fu2_c, "No change")
+new_var$fu3_c <- relevel(new_var$fu3_c, "No change")
+new_var$nwork_n <- relevel(new_var$nwork_n, "No change")
+```
+
+
+```{r}
+new_var_blr <- glm(formula = success_new ~ state_woe + ag_tot_n + hq4_n + co32_n + co33_n + sa2_n + sa4_n + ag_inc_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n + poor, data = new_var[-c(3211, 4649)], family = binomial)
+summary(new_var_blr)
+```
+
+```{r}
+data.frame(odds_ratio = exp(coef(new_var_blr)))
+```
+Wrt change in data from Survey 1 to Survey 2
+
+age_tot_n   : The odds of consumption increase, went up by 0.7%, for a unit increase in total expenditure on farming
+
+co33_n      : The odds of consumption increase, went up by 0.5%, for a unit increase in total expenditure on school books in past 365 days 
+
+sa2_nbetter : The odds of consumption increase, went up by 13%, when a hh had got better change in cooking place relative to no change in cooking place 
+
+sa2_nworse  : The odds of consumption increase, went up by 9%, when a hh had got worse change in cooking place relative to no change in cooking place
+
+wa2_nworse  : The odds of consumption increase, went down by 85%, when a hh had got worse change in water source relative to no change in water source
+
+wa10_nbetter  : The odds of consumption increase, went down by 81%, when a hh had got better change in purifying water relative to no change in cooking place
+
+wa10_nworse : The odds of consumption increase, went up by 1.2%, when a hh had got worst change in purifying water relative to no change in water purification
+
+fu_1nbetter : The odds of consumption increase, went up by 16%, when a hh had got better change in hh electricity relative to no change in hh electricty
+
+n_work_more_earners : The odds of consumption increase, went down by 87%, when hh had shown increase in change of number of people working relative to no change in number of people working in an hh.
+
+
+
+```{r}
+new_var$pred_exp <- fitted(new_var_blr)
+
+require(ROCR)
+pred_prop_exp <- prediction(new_var$pred_exp, new_var$qty_success)
+perf_prop_exp <- performance(pred_prop_exp, "tpr", "fpr")
+plot(perf_prop_exp)
+abline(0,1)
+
+auc_prop_exp <- performance(pred_prop_exp, "auc")
+auc_prop_exp@y.values
+```
+54%
+
+```{r}
+library(ResourceSelection)
+hoslem.test(new_var$success_new, new_var$pred_exp, g = 10)
+```
+
+
+```{r}
+car::vif(new_var_blr)
+```
+
+
+```{r}
+influencePlot(new_var_blr)
+```
+
+```{r}
+library(caret)
+confusionMatrix(ifelse(new_var$pred_exp > 0.26, 1, 0), new_var$success_new, positive = "1")
+```
+
+
+```{r}
+farming <- new_var %>%
+  filter(ag_inc_n == "Yes")
+dim(farming)
+```
+
+```{r}
+farming2 <- na.omit(farming)
+which(farming2$hq4_n == "")
+which(farming2$hq4_n == "")
+```
+
+
+
+```{r}
+require(e1071)
+new_var_nb <- naiveBayes(formula = qty_success ~ state_woe + co32_n + hq4_n + co33_n + sa2_n + sa4_n + ag_inc_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n + poor, data = new_var)
+new_var_nb
+```
+
+
+```{r}
+predict_nb <- predict(new_var_nb, new_var, type="raw")
+head(predict_nb)
+
+head(predict_nb_wb)
+prednb <- prediction(predict_nb[,2], new_var$success_new)
+
+perfnb <- performance(prednb, "tpr", "fpr")
+plot(perfnb)
+abline(0, 1)
+
+aucnb <- performance(prednb, "auc")
+aucnb@y.values
+```
+
+```{r}
+svm_new <- svm(formula = success_new ~ state_woe + co32_n + hq4_n + co33_n + sa2_n + sa4_n + ag_inc_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n + poor, data = new_var, type = "C", probability = TRUE, kernel = "linear")
+
+svm_new
+```
+
+```{r}
+pred_svm <- predict(svm_new, new_var, probability = TRUE)
+
+
+pred_svm_new <-attr(pred_svm, "probabilities")[,2]
+predictn_svm <- prediction(pred_svm_new, new_var$success_new)
+perf_svm <- performance(predictn_svm, "tpr", "fpr")
+
+plot(perf_svm)
+abline(0,1)
+
+auc_svm <- performance(predictn_svm, "auc")
+auc_svm@y.values
+```
+
+```{r}
+farming <- new_var %>%
+  filter(ag_inc_n == "Yes")
+```
+
+
+```{r}
+farming_blr <- glm(formula = success_new ~ state_woe + ag_tot_n + hq4_n + co32_n + co33_n + sa2_n + sa4_n + wa2_n + wa10_n + fu4_n + fu1_n + fu2_n + fu3_n + nwork_n + poor + groups8, data = farming, family = binomial)
+summary(farming_blr)
+```
+
+```{r}
+farming$pred_exp2 <- fitted(farming_blr)
+
+require(ROCR)
+pred_farm <- prediction(farming$pred_exp2, farming$success_new)
+perf_farm <- performance(pred_farm, "tpr", "fpr")
+plot(perf_farm)
+abline(0,1)
+
+auc_farm <- performance(pred_farm, "auc")
+auc_farm@y.values
+```
+
+```{r}
+data.frame(odds_ratio = exp(coef(farming_blr)))
+```
+
+
+
+```{r}
+vif(farming_blr)
+```
+
+```{r}
+confusionMatrix(ifelse(farming$pred_exp2 > 0.26, 1, 0), farming$success_new, positive = "1")
+```
+

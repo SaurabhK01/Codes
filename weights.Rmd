@@ -1,0 +1,394 @@
+---
+title: "Weightage"
+author: "Saurabh"
+date: "February 23, 2018"
+output: html_document
+---
+Qty variables co
+```{r}
+require(dplyr)
+require(ggplot2)
+#co_data4 ..... IHDS 1 co variables
+#co2_data .... IHDS 2 co variables
+glimpse(co_data4)
+glimpse(co2_data)
+```
+
+```{r}
+co_data4 %>%
+  summarise(wgt1 = sum(co1a > 0)/length(co1a))
+```
+
+Weightage function
+```{r}
+vname1 <- names(co_data4)
+vname2 <- names(co2_data)
+wgt <- function(x, vname) {
+  #for(i in seq_along(vname)) {
+    #print(x[,vname[i]])
+    sum(x[,vname[i]] > 0)/nrow(x[,vname[i]])
+    #}
+}
+
+wgt_f <- function(x) {
+      round(sum(x > 0)/length(x),2)
+}
+
+wgt1 <- sapply(co_data4[,names(co_data4)], wgt_f)
+wgt1
+
+wgt2 <- sapply(co2_data, wgt_f)
+wgt1
+wgt2
+
+
+
+```
+
+```{r}
+vname1[[1]]
+wgt1[[1]]
+wgt1[[2]]
+```
+
+```{r}
+tot1 <- co_data4 %>%
+  transmute(wgt1a = co1a * 0.20, wgt2a = co2a * 0.10, wgt3a = co3a * 0.20, wgt4a = co4a * 0.10, wgt5a = co5a * 0.03, wgt7a = co7a * 0.10, wgt8a = co8a * 0.03, wgt9a = co9a * 0.03, wgt10a = co10a * 0.10, wgt11a = co11a * 0.01, wgt12a = co12a * 0.10) %>%
+  mutate(wgt_tot1 = wgt1a+ wgt2a + wgt3a + wgt4a + wgt5a + wgt7a + wgt8a + wgt9a + wgt10a + wgt11a + wgt12a) %>%
+  select(wgt_tot1)
+tot1
+```
+
+```{r}
+tot2 <- co2_data %>%
+  transmute(wgt1a = co1a * 0.20, wgt2a = co2a * 0.10, wgt3a = co3a * 0.20, wgt4a = co4a * 0.10, wgt5a = co5a * 0.03, wgt7a = co7a * 0.10, wgt8a = co8a * 0.03, wgt9a = co9a * 0.03, wgt10a = co10a * 0.10, wgt11a = co11a * 0.01, wgt12a = co12a * 0.10) %>%
+  mutate(wgt_tot2 = wgt1a+ wgt2a + wgt3a + wgt4a + wgt5a + wgt7a + wgt8a + wgt9a + wgt10a + wgt11a + wgt12a) %>%
+  select(wgt_tot2)
+tot2
+```
+
+```{r}
+wgt_diff <- hhy_new1 %>%
+  select(code, stateid, nrega) %>%
+  bind_cols(tot1, tot2) %>%
+  mutate(diff_wgt = wgt_tot2 - wgt_tot1)
+wgt_diff
+```
+
+```{r}
+sum(wgt_diff$diff_wgt < 0)
+table(nrega = wgt_diff$nrega, neg = wgt_diff$diff_wgt < 0)
+```
+
+
+
+```{r}
+wgt_diff %>%
+  ggplot(aes(x = 1, y = diff_wgt)) +
+  geom_boxplot() +
+  ggtitle("Distribution of Difference in Weights") +
+  ylab("Difference between two weights")
+```
+
+
+```{r}
+co_data1 <- hhx_new1 %>%
+  select(starts_with("co"), -ends_with("b"), -ends_with("c"), -ends_with("t"), -ends_with("x"), -ends_with("e"), -ends_with("a"), -ends_with("d"), -code)
+
+co_data2 <- hhy_new1 %>%
+  select(starts_with("co"), -ends_with("b"), -ends_with("c"), -ends_with("t"), -ends_with("x"), -ends_with("e"), -ends_with("a"), -ends_with("d"), -code)
+
+
+co_data1
+co_data2
+```
+
+Checking for NA's
+```{r}
+sum(is.na(co_data1))
+sum(is.na(co_data2))
+```
+Imputing NA's by 0
+```{r}
+co_data1$co15 <- replace(co_data1$co15, which(is.na(co_data1$co15)), 0)
+co_data1$co16 <- replace(co_data1$co16, which(is.na(co_data1$co16)), 0)
+co_data1$co17 <- replace(co_data1$co17, which(is.na(co_data1$co17)), 0)
+co_data1$co18 <- replace(co_data1$co18, which(is.na(co_data1$co18)), 0)
+co_data1$co19 <- replace(co_data1$co19, which(is.na(co_data1$co19)), 0)
+co_data1$co20 <- replace(co_data1$co20, which(is.na(co_data1$co20)), 0)
+co_data1$co21 <- replace(co_data1$co21, which(is.na(co_data1$co21)), 0)
+co_data1$co22 <- replace(co_data1$co22, which(is.na(co_data1$co22)), 0)
+co_data1$co23 <- replace(co_data1$co23, which(is.na(co_data1$co23)), 0)
+co_data1$co24 <- replace(co_data1$co24, which(is.na(co_data1$co24)), 0)
+co_data1$co25 <- replace(co_data1$co25, which(is.na(co_data1$co25)), 0)
+co_data1$co26 <- replace(co_data1$co26, which(is.na(co_data1$co26)), 0)
+co_data1$co27 <- replace(co_data1$co27, which(is.na(co_data1$co27)), 0)
+co_data1$co28 <- replace(co_data1$co28, which(is.na(co_data1$co28)), 0)
+co_data1$co29 <- replace(co_data1$co29, which(is.na(co_data1$co29)), 0)
+co_data1$co30 <- replace(co_data1$co30, which(is.na(co_data1$co30)), 0)
+co_data1$co31 <- replace(co_data1$co31, which(is.na(co_data1$co31)), 0)
+co_data1$co32 <- replace(co_data1$co32, which(is.na(co_data1$co32)), 0)
+co_data1$co33 <- replace(co_data1$co33, which(is.na(co_data1$co33)), 0)
+co_data1$co34 <- replace(co_data1$co34, which(is.na(co_data1$co34)), 0)
+co_data1$co35 <- replace(co_data1$co35, which(is.na(co_data1$co35)), 0)
+co_data1$co36 <- replace(co_data1$co36, which(is.na(co_data1$co36)), 0)
+co_data1$co37 <- replace(co_data1$co37, which(is.na(co_data1$co37)), 0)
+co_data1$co38 <- replace(co_data1$co38, which(is.na(co_data1$co38)), 0)
+co_data1$co39 <- replace(co_data1$co39, which(is.na(co_data1$co39)), 0)
+co_data1$co40 <- replace(co_data1$co40, which(is.na(co_data1$co40)), 0)
+co_data1$co41 <- replace(co_data1$co41, which(is.na(co_data1$co41)), 0)
+co_data1$co42 <- replace(co_data1$co42, which(is.na(co_data1$co42)), 0)
+co_data1$co43 <- replace(co_data1$co43, which(is.na(co_data1$co43)), 0)
+co_data1$co44 <- replace(co_data1$co44, which(is.na(co_data1$co44)), 0)
+co_data1$co45 <- replace(co_data1$co45, which(is.na(co_data1$co45)), 0)
+co_data1$co46 <- replace(co_data1$co46, which(is.na(co_data1$co46)), 0)
+co_data1$co47 <- replace(co_data1$co47, which(is.na(co_data1$co47)), 0)
+```
+
+```{r}
+co_data2$co15 <- replace(co_data2$co15, which(is.na(co_data2$co15)), 0)
+co_data2$co16 <- replace(co_data2$co16, which(is.na(co_data2$co16)), 0)
+co_data2$co17 <- replace(co_data2$co17, which(is.na(co_data2$co17)), 0)
+co_data2$co18 <- replace(co_data2$co18, which(is.na(co_data2$co18)), 0)
+co_data2$co19 <- replace(co_data2$co19, which(is.na(co_data2$co19)), 0)
+co_data2$co20 <- replace(co_data2$co20, which(is.na(co_data2$co20)), 0)
+co_data2$co21 <- replace(co_data2$co21, which(is.na(co_data2$co21)), 0)
+co_data2$co22 <- replace(co_data2$co22, which(is.na(co_data2$co22)), 0)
+co_data2$co23 <- replace(co_data2$co23, which(is.na(co_data2$co23)), 0)
+co_data2$co24 <- replace(co_data2$co24, which(is.na(co_data2$co24)), 0)
+co_data2$co25 <- replace(co_data2$co25, which(is.na(co_data2$co25)), 0)
+co_data2$co26 <- replace(co_data2$co26, which(is.na(co_data2$co26)), 0)
+co_data2$co27 <- replace(co_data2$co27, which(is.na(co_data2$co27)), 0)
+co_data2$co28 <- replace(co_data2$co28, which(is.na(co_data2$co28)), 0)
+co_data2$co29 <- replace(co_data2$co29, which(is.na(co_data2$co29)), 0)
+co_data2$co30 <- replace(co_data2$co30, which(is.na(co_data2$co30)), 0)
+co_data2$co31 <- replace(co_data2$co31, which(is.na(co_data2$co31)), 0)
+co_data2$co32 <- replace(co_data2$co32, which(is.na(co_data2$co32)), 0)
+co_data2$co33 <- replace(co_data2$co33, which(is.na(co_data2$co33)), 0)
+co_data2$co34 <- replace(co_data2$co34, which(is.na(co_data2$co34)), 0)
+co_data2$co35 <- replace(co_data2$co35, which(is.na(co_data2$co35)), 0)
+co_data2$co36 <- replace(co_data2$co36, which(is.na(co_data2$co36)), 0)
+co_data2$co37 <- replace(co_data2$co37, which(is.na(co_data2$co37)), 0)
+co_data2$co38 <- replace(co_data2$co38, which(is.na(co_data2$co38)), 0)
+co_data2$co39 <- replace(co_data2$co39, which(is.na(co_data2$co39)), 0)
+co_data2$co40 <- replace(co_data2$co40, which(is.na(co_data2$co40)), 0)
+co_data2$co41 <- replace(co_data2$co41, which(is.na(co_data2$co41)), 0)
+co_data2$co42 <- replace(co_data2$co42, which(is.na(co_data2$co42)), 0)
+co_data2$co43 <- replace(co_data2$co43, which(is.na(co_data2$co43)), 0)
+co_data2$co44 <- replace(co_data2$co44, which(is.na(co_data2$co44)), 0)
+co_data2$co45 <- replace(co_data2$co45, which(is.na(co_data2$co45)), 0)
+co_data2$co46 <- replace(co_data2$co46, which(is.na(co_data2$co46)), 0)
+co_data2$co47 <- replace(co_data2$co47, which(is.na(co_data2$co47)), 0)
+```
+
+```{r}
+any(is.na(co_data1))
+any(is.na(co_data2))
+```
+
+```{r}
+wgt_co_1 <- sapply(co_data1[,names(co_data1)], wgt_f)
+
+wgt_co_2 <- sapply(co_data2[,names(co_data2)], wgt_f)
+
+wgt_co_1
+wgt_co_2
+```
+Before we multiply weights I think the best thing that you can do is divide HHs by the npersons to get consumption per capita for each commodity
+
+Creating a function which can calculate con expenditure per capita
+```{r}
+test_dt <- data.frame(npersons = c(1, 2, 1, 4, 2, 6, 9),x = c(0, 2, 4, 8, 4, 0, 9), y = c(0, 0, 3, 4, 0, 6, 0), z = c(1, 2, 0, 4, 8, 0 ,0))
+
+##### The first one is the correct function
+per_capita <- function(x) {
+    if (x!= 0) {
+    npersons <- x[,34] 
+    op <- x/npersons
+  } else {
+    next
+  }
+  dt <- op
+  print(dt)
+}
+
+npersons2 <- co_data1[,34]
+
+per_capita2 <- function(x) {
+    if (x!= 0) {
+    op <- x/npersons2
+  } else {
+    next
+  }
+  print(op)
+}
+
+
+per_capita3 <- function(x) {
+  for (i in seq_along(x)){
+    if (any(x!= 0)) {
+    npersons <- x[,34] 
+    op <- x[i]/npersons
+  } else {
+    next
+  } 
+    print(op)
+  }
+}
+
+sapply(test_dt[,names(test_dt)], per_capita)
+per_capita(test_dt)
+seq_along(test_dt)
+length(test_dt)
+```
+
+Adding npersons
+```{r}
+co_data1 <- co_data1 %>%
+  bind_cols(hhx_new1 %>%
+              select(npersons))
+
+co_data1 <- data.frame(co_data1)
+
+co_data2 <- co_data2 %>%
+  bind_cols(hhy_new1 %>%
+              select(npersons))
+co_data1
+co_data2
+```
+
+
+```{r}
+copc1 <- per_capita(as.data.frame(co_data1))
+copc2 <- per_capita(co_data2)
+```
+Seemingly the function doesn't work on tbl_df, tbl, data.frame object
+
+This below code is not needed
+```{r}
+require(data.table)
+setnames(copc1, names(copc1), paste(names(copc1), "pc", sep = "_"))
+setnames(copc2, names(copc2), paste(names(copc2), "pc", sep = "_"))
+```
+
+A failed attempt to attach weights depending on the importance of the variable. The function fails miserably as we get same output 33 times
+```{r}
+co_wgts <- function(x,y) {
+  for(x in 1:length(x)) {
+    if(names(x) == names(y)) {
+      if(y > 0.80) {
+        op <- x*0.2
+      } else if(y %in% c(0.51:0.80)) {
+        op <- x*0.1
+      } else if(y %in% c(0.31:0.50)) {
+        op <- x*0.03
+      } else {
+        op <- x*0.01
+      }
+    } else {
+      next
+    } 
+    dt <- op
+    print(dt)
+  } 
+}
+
+wgts1 <- co_wgts(copc1, wgt_co_1)
+```
+Also, if we remove the iterating op from the above function we get just one dataframe but multiplied by just one weight that is 0.20 
+Doing it the idiot way!
+```{r}
+exp_tot1 <- co_data1 %>%
+  transmute(wgt15 = co15 * 0.20, wgt16 = co16 * 0.20, wgt17 = co17 * 0.10, wgt18 = co18 * 0.10, wgt19 = co19 * 0.01, wgt20 = co20 * 0.20, wgt21 = co21 * 0.01, wgt22 = co22 * 0.10, wgt23 = co23 * 0.03, wgt24 = co24 * 0.20, wgt25 = co25 * 0.20, wgt26 = co26 * 0.10, wgt27 = co27 * 0.01, wgt28 = co28 * 0.01, wgt29 = co29 * 0.03, wgt30 = co30 * 0.10, wgt31 = co31 * 0.03, wgt32 = co32 * 0.10, wgt33 = co33 * 0.10, wgt34 = co34 * 0.20, wgt35 = co35 * 0.20, wgt36 = co36 * 0.01, wgt37 = co37 * 0.03, wgt38 = co38 * 0.01, wgt39 = co39 * 0.01, wgt40 = co40 * 0.01,wgt41 = co41 * 0.03, wgt42 = co42 * 0.01, wgt43 = co43 * 0.01, wgt44 = co44 * 0.01, wgt45 = co45 * 0.01, wgt46 = co46 * 0.01 ,wgt47 = co47 * 0.20) %>%
+  mutate(exp_tot1 = wgt15+ wgt16 + wgt17 + wgt18 + wgt19 + wgt20 + wgt21 + wgt22 + wgt23 + wgt24 + wgt25 + wgt26 + wgt27 + wgt28 + wgt29 + wgt30 + wgt31 + wgt32 + wgt33 + wgt34 + wgt35 + wgt36 + wgt37 + wgt38 + wgt39 + wgt40 + wgt41 + wgt42 + wgt43 + wgt44 + wgt45 + wgt46 + wgt47) %>%
+  select(exp_tot1)
+exp_tot1
+```
+
+```{r}
+exp_tot2 <- co_data2 %>%
+  transmute(wgt15 = co15 * 0.20, wgt16 = co16 * 0.20, wgt17 = co17 * 0.10, wgt18 = co18 * 0.10, wgt19 = co19 * 0.01, wgt20 = co20 * 0.20, wgt21 = co21 * 0.01, wgt22 = co22 * 0.10, wgt23 = co23 * 0.03, wgt24 = co24 * 0.20, wgt25 = co25 * 0.20, wgt26 = co26 * 0.10, wgt27 = co27 * 0.01, wgt28 = co28 * 0.01, wgt29 = co29 * 0.03, wgt30 = co30 * 0.10, wgt31 = co31 * 0.03, wgt32 = co32 * 0.10, wgt33 = co33 * 0.10, wgt34 = co34 * 0.20, wgt35 = co35 * 0.20, wgt36 = co36 * 0.01, wgt37 = co37 * 0.03, wgt38 = co38 * 0.01, wgt39 = co39 * 0.01, wgt40 = co40 * 0.01,wgt41 = co41 * 0.03, wgt42 = co42 * 0.01, wgt43 = co43 * 0.01, wgt44 = co44 * 0.01, wgt45 = co45 * 0.01, wgt46 = co46 * 0.01 ,wgt47 = co47 * 0.20) %>%
+  mutate(exp_tot2 = wgt15+ wgt16 + wgt17 + wgt18 + wgt19 + wgt20 + wgt21 + wgt22 + wgt23 + wgt24 + wgt25 + wgt26 + wgt27 + wgt28 + wgt29 + wgt30 + wgt31 + wgt32 + wgt33 + wgt34 + wgt35 + wgt36 + wgt37 + wgt38 + wgt39 + wgt40 + wgt41 + wgt42 + wgt43 + wgt44 + wgt45 + wgt46 + wgt47) %>%
+  select(exp_tot2)
+exp_tot2
+```
+
+```{r}
+wgt_diff <- wgt_diff %>%
+  bind_cols(exp_tot1, exp_tot2) %>%
+  mutate(exp_wgt = exp_tot2 - exp_tot1)
+wgt_diff
+```
+Checking the negative values in expenditure
+```{r}
+table(wgt_diff$exp_wgt < 0)
+table(nrega = wgt_diff$nrega, Neg = wgt_diff$exp_wgt < 0)
+```
+
+```{r}
+require(scales)
+wgt_diff %>%
+  ggplot(aes(x = 1, y = exp_wgt)) +
+  geom_boxplot() +
+  scale_y_continuous(labels = comma) +
+  labs(title = "Distribution of Expenditure Weights", y = "Consumption Expenditure Weights") 
+require(car)
+exp_outliers <- Boxplot(wgt_diff$exp_wgt)
+```
+Creating success model for qty variable
+```{r}
+wgt_diff <- tbl_df(wgt_diff)
+wgt_diff <- wgt_diff %>%
+  filter(diff_wgt > 0) %>%
+  select(stateid, diff_wgt) %>%
+  group_by(stateid) %>%
+  summarise(avg_qty = round(mean(diff_wgt), 2)) %>%
+  right_join(wgt_diff, by = "stateid") %>%
+  mutate(qty_success = ifelse(diff_wgt > med_qty, 1, 0))
+
+```
+
+Creating success model wrt consumption expenditure
+```{r}
+wgt_diff <- wgt_diff[-exp_outliers,] %>%
+  filter(exp_wgt > 0) %>%
+  select(stateid, exp_wgt) %>%
+  group_by(stateid) %>%
+  summarise(avg_exp = round(mean(exp_wgt), 2)) %>%
+  right_join(wgt_diff, by = "stateid") %>%
+  mutate(exp_success = ifelse(exp_wgt > med_exp, 1, 0))
+wgt_diff
+```
+
+Introducing medians of qty and exp
+```{r}
+wgt_diff <- wgt_diff %>%
+  filter(diff_wgt > 0, exp_wgt > 0) %>%
+  group_by(stateid) %>%
+  summarise(med_qty = median(diff_wgt), med_exp = median(exp_wgt)) %>%
+  right_join(wgt_diff, by = "stateid")
+wgt_diff
+```
+1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+Reordering data
+```{r}
+success <- wgt_diff
+col_order <- c("code", "stateid", "nrega", "wgt_tot1", "wgt_tot2", "diff_wgt", "avg_qty", "med_qty", "qty_success", "exp_tot1", "exp_tot2", "exp_wgt", "med_exp", "avg_exp", "exp_success")
+success[,col_order]
+```
+
+
+```{r}
+wgt_diff %>%
+  filter(qty_success == 1, exp_success == 1)
+```
+
+In my opinion we need to use median than mean! The things will differ a lot!
+
+```{r}
+wgt_diff %>%
+  ggplot(aes(x = diff_wgt)) +
+  geom_histogram() +
+  facet_wrap(~stateid)
+```
+

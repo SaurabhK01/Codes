@@ -1,0 +1,124 @@
+---
+title: "New Vars"
+author: "Saurabh"
+date: "January 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Starting with ID
+
+```{r}
+#Glimpse of ID variable from data 1!
+select(ihds1_hh, starts_with("ID")) %>%
+  glimpse()
+```
+
+```{r}
+select(ihds2_hh, starts_with("ID")) %>%
+  glimpse()
+```
+
+Now Housing data
+```{r}
+select(ihds1_hh, starts_with("HQ")) %>%
+  glimpse()
+```
+
+```{r}
+select(ihds2_hh, starts_with("HQ")) %>%
+  glimpse()
+```
+
+Checking the identifiers
+```{r}
+library(dplyr)
+ihds1_hh %>%
+  select(STATEID:DISTNAME) %>%
+  filter(STATEID == "(01) Jammu & Kashmir")
+  
+id1 <- ihds1_hh %>%
+  select(STATEID:DISTNAME, sid)
+
+```
+
+```{r}
+ihds2_hh %>%
+  select(STATEID:DISTRICT) %>%
+    filter(STATEID == "01")
+
+id2 <- ihds2_hh %>%
+  select(STATEID:DISTRICT)
+
+```
+
+Checking Farming variables
+```{r}
+ihds1_hh %>%
+  select(starts_with("FM")) %>%
+  glimpse()
+```
+
+```{r}
+ihds2_hh %>%
+  select(starts_with("FM")) %>%
+  glimpse()
+```
+
+
+```{r}
+ihds1_hh$code <-id1$code
+ihds2_hh$code <-id2$code
+```
+
+
+
+```{r}
+ihds2_hh %>%
+  select(code, starts_with("INC"), starts_with("N"), -starts_with("NF"), nrega) %>%
+  glimpse()
+
+```
+
+
+```{r}
+ihds1_hh$SURVEY <- "1"
+```
+
+
+```{r}
+library(ggplot2)
+
+ihds2_hh %>%
+  filter(nrega == TRUE) %>%
+  inner_join(ihds1_hh, by = "code") %>%
+  select(code, starts_with("INC"), starts_with("NPERSON"), starts_with("HHSPLITID"), nrega) %>%
+  filter(HHSPLITID.x != 9) %>%
+  glimpse()
+  #ggplot(aes(x = NPERSONS, y = INCOME)) +
+  #geom_point()
+```
+
+```{r}
+unique(ihds2_hh$NPERSONS)
+```
+
+```{r}
+unique(ihds1_hh$STATEID)
+unique(ihds1_hh$DISTID)
+unique(ihds1_hh$PSUID)
+unique(ihds1_hh$HHID)
+unique(ihds1_hh$HHSPLITID)
+```
+
+```{r}
+unique(ihds2_hh$STATEID)
+unique(ihds2_hh$DISTID) 
+unique(ihds2_hh$PSUID) 
+unique(ihds2_hh$HHID)
+unique(ihds2_hh$HHSPLITID)
+```
+

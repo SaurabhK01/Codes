@@ -1,0 +1,370 @@
+---
+title: "New data"
+author: "Saurabh"
+date: "January 19, 2018"
+output: html_document
+---
+The 30462 HH codes which haven't split and not replaced
+```{r}
+intact30k <- tbl_df(code_table) %>%
+  filter(Freq == 1) %>%
+  select(code) %>%
+  setdiff(ihds2_hh %>%
+            filter(HHSPLITID == 9) %>%
+            select(code))
+```
+
+
+New dataframe with renamed variables
+```{r}
+new_hh2 <- cbind(cng_all2, fm_all2, fu_all2, in_all2, multi_all2, wa_all2, n_obs_all2, co_all2, cg_all2, hh_rc_all2, nf_all2, an_all2, me_all2, mp_all2, sa_all2, emp_all2)
+```
+
+Adding assets/jcard and jcard application variables in both data
+```{r}
+ihds1_hh$assets <- ihds1_hh$hhassets
+ihds1_hh$jcard <- 0
+ihds1_hh$jcardapp <- 0
+new_hh2$jcard <- ihds2_hh$IN16
+new_hh2$jcardapp <- ihds2_hh$IN17
+```
+
+
+
+
+
+```{r}
+new_hh2 <- tbl_df(new_hh2)
+
+head(new_hh2)
+```
+
+```{r}
+hh_w2 <- merge(ihds1_hh, new_hh2, by = "code")
+hh_w2 <- tbl_df(hh_w2)
+```
+
+```{r}
+head(hh_w2)
+```
+
+
+```{r}
+dim(hh_w2)
+```
+These are the obs with those 26 surplus less! But this is not the data which is expected. We would require, the 30k observations which are those HHs which didnot split and were not replaced.
+
+Removing non common variables
+```{r}
+hh_wide <- hh_w2 %>%
+  select(code, contains("."))
+```
+
+```{r}
+dim(hh_wide)
+```
+
+
+```{r}
+hhx <- hh_wide %>%
+  select(code, contains(".x")) #%>%
+  #bind_rows()
+```
+
+
+
+```{r}
+
+hhx$groups8.x <- ifelse(hhx$groups8.x == "(1) Brahmin", "(1) Brahmin 1",
+               ifelse(hhx$groups8.x == "(2) High caste", "(2) Forward caste 2",
+                      ifelse(hhx$groups8.x == "(3) OBC", "(3) Other Backward Castes (OBC) 3",
+                             ifelse(hhx$groups8.x == "(4) Dalit", "(4) Dalit 4",
+                                    ifelse(hhx$groups8.x =="(5) Adivasi", "(5) Adivasi 5",
+                                           ifelse(hhx$groups8.x == "(6) Muslim", "(6) Muslim 6", "(7) Christian, Sikh, Jain 7"))))))
+
+summary(hhx$groups8.x)
+
+summary(hhy$groups8.y)
+
+```
+
+
+```{r}
+hhy <- hh_wide %>%
+        select(code, contains(".y"))
+```
+
+```{r}
+target <- names(hhx)
+head(target)
+class(target)
+```
+```{r}
+target2 <- gsub("\\..*", "", x = target)
+head(target2)
+```
+
+
+```{r}
+hhx <- hhx[,order(names(hhx))]
+head(hhx)
+```
+
+```{r}
+hhy <- hhy[, order(names(hhy))]
+hhy
+```
+
+Some cleaning of categorical vars
+```{r}
+levels(hhy$fm9b.y) <- unique(levels(hhx$fm9b.x))
+levels(hhy$fm9c.y) <- unique(levels(hhx$fm9c.x))
+```
+
+
+```{r}
+hhx_small <- merge(hhx, intact30k, by = "code") 
+dim(hhx_small)
+```
+
+
+```{r}
+unique(hhtest$hhsplitid.x)
+```
+
+
+
+```{r}
+hhy_small <- merge(hhy, intact30k, by = "code")
+
+head(hhy_small)
+```
+
+NOTE: Please check anomaly.rmd file!!!
+
+```{r}
+non_anomaly<-  hhy_small %>%
+  select(code) %>%
+  setdiff(anomaly)
+dim(non_anomaly)
+```
+
+```{r}
+hhx_small2 <- merge(hhx_small, non_anomaly, by = "code")
+head(hhx_small2)
+dim(hhx_small2)
+```
+
+```{r}
+hhy_small2 <- merge(hhy_small, non_anomaly, by = "code")
+dim(hhy_small2)
+```
+
+```{r}
+#Just testing
+table(hhy_small2$hhsplitid.y)
+```
+
+```{r}
+setnames(hhx_small2, names(hhx_small2), gsub("\\..*", "", x = names(hhx_small2)))
+head(hhx_small2)
+```
+
+```{r}
+setnames(hhy_small2, names(hhy_small2), gsub("\\..*", "", x = names(hhy_small2)))
+head(hhy_small2)
+```
+
+
+```{r}
+test <- gsub("\\..*", "", x = hhx_small2)
+
+head(test)
+```
+
+```{r}
+hhx_small2 <- hhx_small2[,match(target2, names(hhx_small2))]
+hhy_small2 <- hhy_small2[,match(target2, names(hhy_small2))]
+
+```
+
+
+```{r}
+class(hhx_small2$idhh)
+class(hhy_small2$idhh)
+hhy_small2$idhh <- as.numeric(hhy_small2$idhh)
+
+unique(hhx_small2$id20)
+table(hhx_small2$id20)
+unique(hhy_small2$id20)
+
+head(hhy_small2$id20)
+hhy_small2$id20 <- gsub(".*\\s", "", hhy_small2$id20)
+
+table(hhy_small2$id20)
+table(ihds2_hh$ID18C)
+levels(hhy_small2$id20) <- c(0:16, 88)
+
+class(hhy_small2$id20)
+hhy_small2$id20 <- as.numeric(hhy_small2$id20)
+
+levels(as.factor(hhx_small2$nf1a))
+levels(hhy_small2$nf1a)
+hhx_small2$nf1a <- NULL
+hhy_small2$nf1a <- NULL
+
+hhx_small2$nf10b <- NULL
+hhy_small2$nf10b <- NULL
+
+table(hhx_small2$co1b)
+unique(hhy_small2$co1b)
+hhx_small2$co1b <- factor(hhx_small2$co1b)
+levels(hhx_small2$co1b) <- c("(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "15" )
+levels(ihds2_hh$CO1B)
+class(hhy_small2$co1b)
+class(hhx_small2$co1b)
+
+unique(hhy_small2$co2b)
+unique(hhx_small2$co2b)
+hhx_small2$co2b <- factor(hhx_small2$co2b)
+levels(hhy_small2$co2b)
+levels(hhx_small2$co2b) <- c("0", "(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "30")
+table(hhx_small2$co2b)
+
+unique(hhx_small2$co5b)
+hhx_small2$co5b <- factor(hhx_small2$co5b)
+levels(hhx_small2$co5b) <- c("0", "(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3")
+unique(hhx_small2$co5b)
+
+levels(hhy_small2$co5b)
+
+
+hhx_small2$co7b <- factor(hhx_small2$co7b)
+levels(hhx_small2$co7b) <- c("(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "4")
+levels(hhy_small2$co7b)
+table(hhx_small2$co7b)
+
+
+hhx_small2$co8b <- factor(hhx_small2$co8b)
+levels(hhx_small2$co8b)
+levels(hhx_small2$co8b) <- c("(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "50")
+levels(hhy_small2$co8b)
+table(hhx_small2$co8b)
+
+hhx_small2$co10b <- factor(hhx_small2$co10b)
+levels(hhx_small2$co10b)
+levels(hhx_small2$co10b) <- c("0","(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "4")
+levels(hhy_small2$co10b)
+table(hhx_small2$co10b)
+
+unique(hhx_small2$cg1)
+hhx_small2$co14b <- factor(hhx_small2$co14b)
+levels(hhx_small2$co13b)
+levels(hhx_small2$cg1) <- c("(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "6", "35")
+levels(hhy_small2$cg1)
+table(hhx_small2$cg1)
+
+hhx_small2$cg1 <- NULL
+hhy_small2$cg1 <- NULL
+
+unique(hhx_small2$db1)
+hhx_small2$co14b <- factor(hhx_small2$co14b)
+levels(hhx_small2$co13b)
+levels(hhx_small2$cg1) <- c("(1) Home grown 1", "(2) Purchased 2",  "(3) Both 3", "6", "35")
+levels(hhy_small2$db1)
+table(hhx_small2$cg1)
+
+hhx_small2$db1 <- NULL
+hhy_small2$db1 <- NULL
+
+hhx_small2$tr1 <- NULL
+hhy_small2$tr1 <- NULL
+
+
+hhx_small2$lc1 <- NULL
+hhy_small2$lc1 <- NULL
+
+unique(hhx_small2$wa2)
+hhx_small2$wa2 <- factor(hhx_small2$wa2)
+levels(hhx_small2$co13b)
+levels(hhx_small2$wa2) <- c("(1) outside 1", "(2) inside 2", "3")
+levels(hhy_small2$wa2)
+table(hhx_small2$wa2)
+
+
+hhx_small2$wa11b <- NULL
+hhy_small2$wa11b <- NULL
+
+
+unique(hhx_small2$fu5a)
+hhx_small2$fu5a <- factor(hhx_small2$fu5a)
+levels(hhx_small2$co13b)
+levels(hhx_small2$fu5a) <- c("0","(1) Purchase 1", "(2) Collect from own land 2", "(3) Collect from village/other places", "(4) Both (Purchased & collected) 4")
+levels(hhy_small2$fu5a)
+table(hhx_small2$fu5a)
+
+hhx_small2$jcardapp <- c("(0) No 0")
+unique(hhx_small2$jcardapp)
+hhx_small2$hq2a <- factor(hhx_small2$hq2a)
+levels(hhx_small2$co13b)
+levels(hhx_small2$jcardapp) <- c("(0) No 0",  "(1) Yes 1", "4")
+levels(hhy_small2$jcardapp)
+table(hhx_small2$hq2a)
+
+hhy_small2$stateid <- factor(hhy_small2$stateid)
+levels(hhy_small2$stateid)
+```
+
+
+```{r}
+sapply(hhx_small2, levels)
+```
+
+
+bind_rows data
+```{r}
+hh_long2 <- bind_rows(hhx_small2, hhy_small2)
+hh_long <- bind_rows(hhx_small3, hhy_small3)
+
+dim(rbind(hhx_small2, hhy_small2))
+
+dim(hh_long2)
+dim(hh_long)
+```
+
+Deleting the extra variables created
+```{r}
+hh_long <- hh_long[,-(361:719)]
+dim(hh_long)
+```
+
+Arranging variables the way they were
+```{r}
+hh_long <- hh_long[,match(target, names(hh_long))]
+head(hh_long)
+```
+
+
+```{r}
+
+setnames(hh_long, names(hh_long), gsub("\\..*", "", x = target))
+
+head(hh_long)
+```
+
+# setting income classification variable
+
+```{r}
+hh_long$inccat<- cut(hh_long$income, breaks = c(-300000, 0,300000,600000, 900000, 1200000, Inf), labels = c("neg", "ews", "lig", "l-mig", "u-mig", "hig"))
+summary(hh_long$inccat)
+summary(hh_long$income)
+```
+
+```{r}
+dim(hh_long)
+```
+
+```{r}
+summary(hh_long$jcard)
+```
+

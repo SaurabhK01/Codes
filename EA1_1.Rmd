@@ -1,0 +1,206 @@
+---
+title: "EA 1.0"
+author: "Saurabh"
+date: "January 11, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We're considering data from Wave 1 and Wave 2
+
+Before we could Quantify Nrega success, we need to understand the underlying occupation trends from the data.
+
+District/State vs Income (Color = Religion, Shape = POOR, Size = HH Size)
+
+```{r}
+length(unique(ihds1_hh$DISTNAME))
+
+head(unique(ihds1_hh$DISTNAME))
+```
+
+
+The class variable CG3 in IHDS 2 is not deduced from the collected data, but people themselves decide what class they lie in.
+
+Let's create a class variable
+```{r}
+#UNderstanding the overall spread of Income variable
+summary(ihds1_hh$INCOME)
+```
+
+```{r}
+hist(ihds1_hh$INCOME/1000, breaks = 100)
+```
+
+Pretty clear that the data is skewed..
+```{r}
+car::Boxplot(ihds1_hh$INCOME)
+```
+
+Checking the outliers
+```{r}
+income1 <- (ihds1_hh[-c(3242, 3633, 5204, 24167, 26269, 28082, 30125, 32047, 34643, 9777, 38497, 15050, 26387,  3438, 38273,  1089, 37891, 41481, 36264), "INCOME"])
+
+summary(income1)
+
+```
+
+How many people are more than annual INR 3 lakhs
+```{r}
+table(ihds1_hh$INCOME > 300000)
+```
+
+Again visualizing wrt the people with less than INR 3lakhs of Income
+```{r}
+library(magrittr)
+
+income2 <- subset(ihds1_hh, INCOME < 300000) 
+
+ggplot2::qplot(INCOME/1000, data = income2, binwidth = 10)
+```
+INcome of around 8000 approx observations lie between INR 3000 - INR 4000 
+
+Understanding the position of these 8000 families wrt Poverty Line
+
+```{r}
+#How much was the poverty line?
+head(ihds2_hh$POVLINE2012)
+```
+
+
+
+```{r}
+head(ihds1_hh$POOR)
+
+table(ihds1_hh$POOR)
+
+```
+
+
+```{r}
+library(dplyr)
+
+income1 <- tbl_df(income2)
+
+class(income1)
+```
+
+
+```{r}
+filter(income1, POOR == "(1) Yes") %>%
+  summarise(poor = max(INCOME))
+
+filter(income1, POOR == "(0) No") %>%
+  summarise(non_poor = max(INCOME))
+```
+
+
+
+```{r}
+library(ggplot2)
+
+income1 %>%
+ggplot(aes(x = NPERSONS, y = INCOME/100)) +
+  geom_point(aes(shape = ID14, color = POOR), position = "jitter")
+
+
+income1 %>%
+  filter(POOR == "(1) Yes") %>%
+  ggplot(aes(x = DISTNAME, y = INCOME/100))+
+  geom_point(aes(shape = ID14, size = NPERSONS),position = "jitter") +
+  scale_shape_manual(values = c(1:9))
+
+```
+
+```{r}
+income1 %>%
+  filter(POOR == "(0) No") %>%
+  ggplot(aes(x = DISTNAME, y = INCOME/100))+
+  geom_point(aes(shape = ID14, size = NPERSONS),position = "jitter") +
+  scale_shape_manual(values = c(1:9)) +
+  theme(axis.text.x = element_text(angle=70, hjust=1))
+```
+
+```{r}
+table(ihds1_hh$ID14)
+```
+
+```{r}
+table(ihds1_hh$ID13)
+```
+
+```{r}
+table(ihds2_hh$ID13)
+```
+
+```{r}
+table(ihds1_hh$GROUPS8)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+ihds1_hh %>%
+  ggplot(aes(x = STATEID, y = INCOME/100, fill = POOR)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle=70, hjust=1))
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+ihds2_hh %>%
+  ggplot(aes(x = sid, y = INCOME/100, fill = POOR)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle=70, hjust=1))
+
+```
+
+Counting the number of HH in Dist and Dist in States
+```{r}
+hh_distribution <- cbind(aggregate(DISTID ~ STATEID, data = hh2, FUN = unique), table(hh2$sid))
+
+hh_distribution
+
+hh_distribution$Var1 <- NULL
+
+hh_distribution$DISTID <- sapply(hh_distribution$DISTID, length)
+
+names(hh_distribution) <- c("States", "Dist_freq", "HH_Freq")
+```
+```{r}
+s2id <- table(hh2$DISTID, hh2$STATEID)
+
+head(s2id)
+s2id <- data.frame(s2id)
+
+head(s2id)
+dim(hh2)
+```
+
+Understanding the distribution of Total Agricultural land owned
+```{r}
+ihds1_hh %>%
+  ggplot(aes(x = FM4)) +
+  geom_histogram()
+```
+
+We can check the the proportion of farm income vs proportion of landowned and irrigated
+```{r}
+library(ggplot2)
+ihds1_hh %>%
+  ggplot(aes(x = FM4*FM2, y = INCFARM/300000)) +
+  geom_jitter()
+```
+
+```{r}
+summary(ihds1_hh$INCFARM)
+```
+
+```{r}
+ihds1_hh[which(ihds1_hh$INCFARM == 3929000),]
+```
+

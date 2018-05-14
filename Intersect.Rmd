@@ -1,0 +1,203 @@
+---
+title: "solving for hhid"
+author: "Saurabh"
+date: "January 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Creating new variable for State_id Short
+ihds1_hh$sid <- unlist(regmatches(ihds1_hh$STATEID,gregexpr("(*[0-9].)", ihds1_hh$STATEID)))
+  #gsub("*[a-z|A-Z]\\s", "", ihds1_hh$STATEID)
+
+head(ihds1_hh$STATEID)
+unique(ihds1_hh$STATEID)
+head(ihds1_hh$sid)
+unique(ihds1_hh$sid)
+unique(ihds2_hh$STATEID)
+```
+
+Pasting for IHDS1
+```{r}
+hh_conc11 <- paste0(as.factor(ihds1_hh$sid), ihds1_hh$DISTID, ihds1_hh$PSUID, ihds1_hh$HHID, ihds1_hh$HHSPLITID)
+
+length(hh_conc1)
+
+length(hh_conc11)
+```
+
+
+Pasting for IHDS2
+```{r}
+hh_conc2 <- paste0(ihds2_hh$STATEID, ihds2_hh$DISTID, ihds2_hh$PSUID, ihds2_hh$HHID)
+head(hh_conc2)
+```
+
+Checking the intercept
+```{r}
+library(dplyr)
+hh_intrcpt <- intersect(hh_conc1, hh_conc2)
+length(hh_intrcpt)
+```
+
+
+```{r}
+library(rio)
+#intrcpt <- as.data.frame(hh_conc1, hh_conc2, hh_intrcpt)
+export(as.data.frame(hh_intrcpt), "intercept.csv")
+```
+
+
+```{r}
+dim(ihds1_hh)
+36297/41554
+```
+
+```{r}
+table(ihds2_hh$HHSPLITID == 1)
+table(ihds2_hh$HHSPLITID == 9)
+
+34621/41554
+34621+2134    #hhplitid1 + hhsplitid9
+36755-36297   #hhplitid1+9 - myintercept_val
+36297-34621   #myintercept_val - hhsplitid1 = 
+```
+The intersect is also adding those datapoints which are replacement HH (HHSPLITIDs as 9 in II)
+
+Removing data with HHSPLITID as 9
+```{r}
+unique(ihds2_hh$HHSPLITID)
+hhno9 <- ihds2_hh %>%
+  select(STATEID:HHSPLITID) %>%
+  filter(HHSPLITID %in% c(1:6))
+
+dim(hhno9)
+length(hh_conc1)
+```
+
+
+```{r}
+table(ihds2_hh$HHSPLITID)
+```
+
+```{r}
+hh_conc2no9 <- paste0(hhno9$STATEID, hhno9$DISTID, hhno9$PSUID, hhno9$HHID)
+head(hh_conc2no9)
+```
+
+```{r}
+length(hh_conc2)
+
+length(hh_conc2no9)
+
+42152-40018
+```
+
+```{r}
+hh_intrcpt_no9 <- intersect(hh_conc1,hh_conc2no9)
+length(hh_intrcpt_no9)
+34263/41554
+```
+
+Finding the diff of 2
+```{r}
+hhy1 <- ihds2_hh %>%
+  select(STATEID:HHSPLITID) %>%
+  filter(HHSPLITID == 1)
+dim(hhno1)
+```
+
+```{r}
+hh_conc2y1 <- paste0(hhy1$STATEID, hhy1$DISTID, hhy1$PSUID, hhy1$HHID)
+head(hh_conc2y1)
+```
+
+```{r}
+length(intersect(hh_conc2y1, hh_conc1))
+length(hh_conc2y1)
+length(hh_intrcpt_no9)
+```
+
+```{r}
+unique(ihds1_hh$HHSPLITID)
+unique(ihds2_hh$HHSPLITID)
+unique(hhy1$HHSPLITID)
+unique(hhno9$HHSPLITID)
+```
+
+```{r}
+glimpse(id1)
+glimpse(id2)
+```
+
+```{r}
+id1$sid <- as.numeric(id1$sid)
+id2$STATEID <- as.numeric(id2$STATEID)
+
+glimpse(id1)
+glimpse(id2)
+```
+
+```{r}
+id1$code <- id1$sid*10000000 + id1$DISTID*100000 + id1$PSUID*1000 + id1$HHID*10 + id1$HHSPLITID
+
+id2$code <- id2$STATEID*10000000 + id2$DISTID*100000 + id2$PSUID*1000 + id2$HHID
+
+glimpse(id1)
+glimpse(id2)
+
+```
+
+```{r}
+length(intersect(id1$code1, id2$code2))
+```
+
+Excluding replacement HH
+```{r}
+code_no9 <- id2 %>%
+  filter(HHSPLITID == 1) %>%
+  glimpse()
+```
+
+```{r}
+length(intersect(id1$code1, code_no9$code2))
+length(setdiff(id1$code1, code_no9$code2))
+```
+31802: A defecit of 2819 obs from 34621
+
+```{r}
+code_no9$code <- code_no9$code2
+merge_id <- merge(id1, code_no9, by = "code")
+
+dim(merge_id)
+```
+
+```{r}
+merge_id
+
+```
+
+```{r}
+names(merge_id)
+```
+
+```{r}
+View(merge_id[,c("code", "code2")])
+```
+
+```{r}
+library(dplyr)
+ihds1_hh %>%
+  filter(sid %in% c("04","05")) %>%
+  select(code, sid, DISTID:IDPSU, DISTNAME) %>%
+  View()
+```
+
+```{r}
+
+```
+

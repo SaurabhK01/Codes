@@ -1,0 +1,248 @@
+---
+title: "The Analysis"
+author: "Saurabh"
+date: "January 20, 2018"
+output: html_document
+---
+```{r}
+library(rio)
+
+hhl <- import("hh_long.rda")
+```
+
+```{r}
+hhl$nrega <- hhl$jcard > 0
+
+table(hhl$nrega)
+```
+
+```{r}
+hhl$incat <- cut(hhl$income, breaks = c(-300000, 0, 300000, 600000, 900000, 1200000, Inf), labels = c("neg", "ews", "lig", "l-mig", "u-mig", "hig"))
+
+class(hhl$incat)
+levels(hhl$incat)
+
+table(hhl$incat)
+```
+
+```{r}
+library(ggplot2)
+hhl %>%
+  filter(incat == "ews") %>%
+  ggplot(aes(income)) +
+  geom_histogram(stat = "bin")
+```
+
+```{r}
+hhl %>%
+  filter(income > 1000 & income < 75000) %>%
+  ggplot(aes(income)) +
+  geom_histogram(stat = "bin")
+
+```
+
+```{r}
+gmodels::CrossTable(hhl$nrega, hhl$incat, prop.c = TRUE, prop.r = TRUE, prop.chisq = FALSE,)
+```
+
+```{r}
+hhl %>%
+  filter(income > 1000 & income < 75000, survey == 2) %>%
+  ggplot(aes(assets, fill = nrega)) +
+  geom_bar(position = "stack")
+```
+
+```{r}
+hhl %>%
+  ggplot(aes(x = incat, y = assets)) +
+  geom_jitter() +
+  facet_grid(.~survey) +
+  labs(x = "Income Category of an HH", y = "Assets owned by a HH", title = "Income_Category vs Assets")
+```
+
+```{r}
+table(hhl$jcard)
+hh2$IN16 <- as.character(hh2$IN16)
+hh2$IN16 <- factor(hh2$IN16)
+
+
+aggregate(INCNREGA ~ IN16, data = hh2, FUN = mean)
+```
+
+```{r}
+income_chart <- aggregate(income ~ nbusiness + nagwage + nanimal + nfarm + nnonag + nsalary + nwork, data = hhl, FUN = mean)
+
+income_chart <- income_chart[order(income_chart$income),]
+
+income_chart
+```
+
+```{r}
+
+```
+
+
+
+```{r}
+
+```
+
+
+```{r}
+aggregate(INCNREGA ~ NWKNREGA, data = hh2, FUN = mean)
+```
+
+```{r}
+hhl %>%
+```
+
+
+```{r}
+library(ggplot2)
+hhnrega %>%
+  #filter(INCOME < 600000 & INCOME > 0) %>%
+  ggplot(aes(y= income, x = copc, color = survey)) +
+  geom_jitter() 
+```
+
+```{r}
+library(dplyr)
+thirtyk <- hhl %>%
+  filter(survey == 2) %>%
+  select(code)
+  intersect(thirtyk, hh1, by = "code") 
+#%>%
+merge(x = hh2, by = "code") %>%
+  select()
+
+```
+
+```{r}
+hhl %>%
+  filter(survey == 1) %>%
+  mutate(incnrega = 0) %>%
+  select(incnrega)
+```
+
+```{r}
+hhl %>%
+  filter(survey == 2) %>%
+  
+```
+
+```{r}
+table(hh2$IN17)
+table(hh2$IN16)
+```
+
+```{r}
+hhl %>%
+  filter(survey == 2) %>%
+  ggplot(aes(nrega, fill = poor)) +
+  geom_bar(position = "fill") +
+  labs(x = "Whether Employed with NREGA", y = "Poverty Status", title = "Understanding Nrega distribution within poor/non-poor")
+```
+
+Number of nrega vs state
+```{r}
+
+table(hh2$STATEID, hh2$nrega)
+
+```
+
+With respect to assets
+```{r}
+library(rio)
+hhnrega <- import("nrega_hh.rda")
+
+hhnrega %>%
+  ggplot(aes(assets)) +
+  geom_bar() +
+  facet_grid(.~survey) +
+  labs(x = "Number of Assets Owned", title = "Understanding distribution of assets before and after implementation of NREGA")
+```
+
+```{r}
+unique(hhnrega$db2b)
+hhnrega %>%
+ggplot(aes(x = inccat, y=db2b)) +
+  geom_bar(stat = "identity") +
+  facet_grid(.~survey) +
+  labs(x = "Highest AMount of loan taken in last 5 years", title = "Debt Before and After in NREGA employed HH") 
+
+
+```
+
+```{r}
+religion <- table(hh2$groups8)
+
+hh2 %>%
+  ggplot(aes(GROUPS)) +
+  geom_bar() +
+  labs(x = "Religion/Caste", title = "Distribution of Religion within the sample") +
+  theme(axis.text.x = element_text(angle=70, hjust=1))
+```
+
+```{r}
+hhnrega %>%
+  filter(survey == 1) %>%
+  ggplot(aes(groups8)) +
+  geom_bar() +
+  labs(x = "Religion/Caste", title = "Religion Distribution for NREGA employed HHs") +
+  theme(axis.text.x = element_text(angle=70, hjust=1))
+```
+
+
+```{r}
+3308+10568+20732+12543+5194+6519+2000
+
+3308/2
+
+1654/30434
+```
+
+```{r}
+table(hh2$GROUPS)
+```
+
+```{r}
+table(hhnrega$groups8)
+```
+
+```{r}
+library(dplyr)
+hhl %>%
+  filter(survey == 1) %>%
+  select(incat) %>%
+  table()
+```
+
+```{r}
+hhl %>%
+  filter(survey == 2) %>%
+  select(incat) %>%
+  table()
+```
+
+```{r}
+hhnrega %>%
+  filter(survey == 1) %>%
+  select(assets) %>%
+  sum()
+```
+
+```{r}
+hhnrega %>%
+  filter(survey == 2) %>%
+  select(assets) %>%
+  sum(na.rm = TRUE)
+```
+
+```{r}
+nrega_dist <- hhnrega %>%
+  filter(survey == 2) %>%
+  select(sid, distid)
+
+table(nrega_dist$distid, nrega_dist$sid)
+```
+

@@ -1,0 +1,497 @@
+---
+title: "rework2_checking_classes & levels"
+author: "Saurabh"
+date: "February 2, 2018"
+output: html_document
+---
+```{r}
+library(rio)
+
+hhx_new <- import("hhx_new.rda")
+
+hhy_new <- import("hhy_new.rda")
+
+hhx_new <- tbl_df(hhx_new)
+
+hhy_new <- tbl_df(hhy_new)
+
+```
+
+Checking parity of classes
+```{r}
+sapply(hhy_new, class)
+sapply(hhx_new, class)
+```
+
+Working on the anomalies
+CG1
+```{r}
+unique(hhx_new$cg1)
+unique(hhy_new$cg1)
+table(hhx_new$cg1)
+summary(hhx_new$cg1)
+summary(hhy_new$cg1)
+
+#Removing 100 and coercing it too NA
+```
+
+```{r}
+library(car)
+hhx_new$cg1 <- recode(hhx_new$cg1, "100=NA")
+#Checking again
+table(hhx_new$cg1)
+```
+Voila!
+
+Similarly
+```{r}
+hhy_new$cg1 <- recode(hhy_new$cg1, "'(1) Owned 1' = 1; '(2) Rented 2' = 2; NA = NA; else = 3")
+
+summary(hhy_new$cg1)
+```
+
+CO10B
+```{r}
+unique(hhx_new$co10b)
+unique(hhy_new$co10b)
+table(hhx_new$co10b)
+summary(hhx_new$co10b)
+summary(hhy_new$co10b)
+```
+
+Removing 0s and NAs
+```{r}
+hhx_new$co10b <- recode(hhx_new$co10b, "0 = NA; 4 = NA")
+#Checking again
+table(hhx_new$co10b)
+```
+
+Similarly
+```{r}
+hhy_new$co10b <- recode(hhy_new$co10b, "'(1) Home grown 1' = 1; '(2) Purchased 2' = 2;'(3) Both 3' = 3")
+#Checking again
+table(hhy_new$co10b)
+```
+
+CO11b
+```{r}
+unique(hhx_new$co11b)
+unique(hhy_new$co11b)
+table(hhx_new$co11b)
+summary(hhx_new$co11b)
+summary(hhy_new$co11b)
+```
+
+removing 22
+```{r}
+hhx_new$co11b <- recode(hhx_new$co11b,"22=NA" )
+#Checking again
+table(hhx_new$co11b)
+class(hhx_new$co11b)
+hhx_new$co11b <- factor(hhx_new$co11b)
+levels(hhx_new$co11b)
+```
+Releveling
+```{r}
+levels(hhx_new$co11b) <- levels(hhy_new$co11b)
+table(hhx_new$co11b)
+```
+
+co12b
+```{r}
+unique(hhx_new$co12b)
+unique(hhy_new$co12b)
+table(hhx_new$co12b)
+summary(hhx_new$co12b)
+summary(hhy_new$co12b)
+```
+Removing 40
+```{r}
+hhx_new$co12b <- recode(hhx_new$co12b,"40=NA" )
+#Checking again
+table(hhx_new$co12b)
+class(hhx_new$co12b)
+hhx_new$co12b <- factor(hhx_new$co12b)
+levels(hhx_new$co12b)
+```
+
+```{r}
+levels(hhx_new$co12b) <- levels(hhy_new$co12b)
+table(hhx_new$co12b)
+```
+
+co13b
+```{r}
+unique(hhx_new$co13b)
+unique(hhy_new$co13b)
+table(hhx_new$co13b)
+summary(hhx_new$co13b)
+summary(hhy_new$co13b)
+```
+
+removing 0s
+```{r}
+hhx_new$co13b <- recode(hhx_new$co13b,"0=NA" )
+#Checking again
+table(hhx_new$co13b)
+class(hhx_new$co13b)
+hhx_new$co13b <- factor(hhx_new$co13b)
+levels(hhx_new$co12b)
+#Matching it with dat 2
+levels(hhx_new$co12b) <- levels(hhy_new$co12b)
+table(hhx_new$co12b)
+```
+
+co14b
+```{r}
+unique(hhx_new$co14b)
+unique(hhy_new$co14b)
+table(hhx_new$co14b)
+summary(hhx_new$co14b)
+summary(hhy_new$co14b)
+```
+
+Removing 6 and 35
+```{r}
+hhx_new$co14b <- recode(hhx_new$co14b,"6=NA; 35=NA" )
+#Checking again
+table(hhx_new$co14b)
+class(hhx_new$co14b)
+hhx_new$co14b <- factor(hhx_new$co14b)
+summary(hhx_new$co14b)
+#Matching it with dat 2
+levels(hhx_new$co14b) <- levels(hhy_new$co14b)
+table(hhx_new$co14b)
+```
+
+co1b
+```{r}
+unique(hhx_new$co1b)
+unique(hhy_new$co1b)
+table(hhx_new$co1b)
+summary(hhx_new$co1b)
+summary(hhy_new$co1b)
+```
+
+removing 15
+```{r}
+hhx_new$co1b <- recode(hhx_new$co1b,"15=NA" )
+#Checking again
+table(hhx_new$co1b)
+class(hhx_new$co1b)
+hhx_new$co1b <- factor(hhx_new$co1b)
+summary(hhx_new$co1b)
+#Matching it with dat 2
+levels(hhx_new$co1b) <- levels(hhy_new$co1b)
+table(hhx_new$co1b)
+```
+
+co2b
+```{r}
+unique(hhx_new$co2b)
+unique(hhy_new$co2b)
+table(hhx_new$co2b)
+summary(hhx_new$co2b)
+summary(hhy_new$co2b)
+```
+
+removing 30 and 0
+```{r}
+hhx_new$co2b <- recode(hhx_new$co2b,"0=NA; 30=NA" )
+#Checking again
+table(hhx_new$co2b)
+class(hhx_new$co2b)
+hhx_new$co2b <- factor(hhx_new$co2b)
+summary(hhx_new$co2b)
+#Matching it with dat 2
+levels(hhx_new$co2b) <- levels(hhy_new$co2b)
+table(hhx_new$co2b)
+```
+
+co5b
+```{r}
+unique(hhx_new$co5b)
+unique(hhy_new$co5b)
+table(hhx_new$co5b)
+summary(hhx_new$co5b)
+summary(hhy_new$co5b)
+```
+
+removing 0
+```{r}
+hhx_new$co5b <- recode(hhx_new$co5b,"0=NA" )
+#Checking again
+table(hhx_new$co5b)
+class(hhx_new$co5b)
+hhx_new$co5b <- factor(hhx_new$co5b)
+summary(hhx_new$co5b)
+#Matching it with dat 2
+levels(hhx_new$co5b) <- levels(hhy_new$co5b)
+table(hhx_new$co5b)
+```
+
+co7b
+```{r}
+unique(hhx_new$co7b)
+unique(hhy_new$co7b)
+table(hhx_new$co7b)
+summary(hhx_new$co7b)
+summary(hhy_new$co7b)
+```
+
+removing 4
+```{r}
+hhx_new$co7b <- recode(hhx_new$co7b,"4=NA" )
+#Checking again
+table(hhx_new$co7b)
+class(hhx_new$co7b)
+hhx_new$co7b <- factor(hhx_new$co7b)
+summary(hhx_new$co7b)
+#Matching it with dat 2
+levels(hhx_new$co7b) <- levels(hhy_new$co7b)
+table(hhx_new$co7b)
+```
+
+co8b
+```{r}
+unique(hhx_new$co8b)
+unique(hhy_new$co8b)
+table(hhx_new$co8b)
+summary(hhx_new$co8b)
+summary(hhy_new$co8b)
+```
+
+Removing 50
+```{r}
+hhx_new$co8b <- recode(hhx_new$co8b,"50=NA" )
+#Checking again
+table(hhx_new$co8b)
+class(hhx_new$co8b)
+hhx_new$co8b <- factor(hhx_new$co8b)
+summary(hhx_new$co8b)
+#Matching it with dat 2
+levels(hhx_new$co8b) <- levels(hhy_new$co8b)
+table(hhx_new$co8b)
+```
+
+fu5a
+```{r}
+unique(hhx_new$fu5a)
+unique(hhy_new$fu5a)
+table(hhx_new$fu5a)
+summary(hhx_new$fu5a)
+summary(hhy_new$fu5a)
+```
+removing 0 and coercing ti factor as well as renaming the levels
+
+```{r}
+hhx_new$fu5a <- recode(hhx_new$fu5a,"0=NA" )
+#Checking again
+table(hhx_new$fu5a)
+class(hhx_new$fu5a)
+hhx_new$fu5a <- factor(hhx_new$fu5a)
+summary(hhx_new$fu5a)
+#Matching it with dat 2
+levels(hhx_new$fu5a) <- levels(hhy_new$fu5a)
+table(hhx_new$fu5a)
+```
+
+fu7a
+```{r}
+unique(hhx_new$fu7a)
+unique(hhy_new$fu7a)
+table(hhx_new$fu7a)
+summary(hhx_new$fu7a)
+summary(hhy_new$fu7a)
+```
+
+```{r}
+hhx_new$fu7a <- recode(hhx_new$fu7a,"0=NA" )
+#Checking again
+table(hhx_new$fu7a)
+class(hhx_new$fu7a)
+hhx_new$fu7a <- factor(hhx_new$fu7a)
+summary(hhx_new$fu7a)
+#Matching it with dat 2
+levels(hhx_new$fu7a) <- levels(hhy_new$fu7a)
+table(hhx_new$fu7a)
+```
+
+fu9a
+```{r}
+unique(hhx_new$fu9a)
+unique(hhy_new$fu9a)
+table(hhx_new$fu9a)
+summary(hhx_new$fu9a)
+summary(hhy_new$fu9a)
+```
+
+```{r}
+hhx_new$fu9a <- recode(hhx_new$fu9a,"0=NA" )
+#Checking again
+table(hhx_new$fu9a)
+class(hhx_new$fu9a)
+hhx_new$fu9a <- factor(hhx_new$fu9a)
+summary(hhx_new$fu9a)
+#Matching it with dat 2
+levels(hhx_new$fu9a) <- levels(hhy_new$fu9a)
+table(hhx_new$fu9a)
+```
+
+groups8
+```{r}
+unique(hhx_new$groups8)
+unique(hhy_new$groups8)
+table(hhx_new$groups8)
+summary(hhx_new$groups8)
+summary(hhy_new$groups8)
+class(hhx_new$groups8)
+class(hhy_new$groups8)
+```
+
+```{r}
+hhx_new$groups8 <- factor(hhx_new$groups8)
+```
+
+hq2a
+```{r}
+unique(hhx_new$hq2a)
+unique(hhy_new$hq2a)
+table(hhx_new$hq2a)
+summary(hhx_new$hq2a)
+summary(hhy_new$hq2a)
+```
+
+removing 4 and changing class & renaming the levels
+```{r}
+hhx_new$hq2a <- recode(hhx_new$hq2a,"4=NA" )
+#Checking again
+table(hhx_new$hq2a)
+class(hhx_new$hq2a)
+hhx_new$hq2a <- factor(hhx_new$hq2a)
+summary(hhx_new$hq2a)
+#Matching it with dat 2
+levels(hhx_new$hq2a) <- levels(hhy_new$hq2a)
+table(hhx_new$hq2a)
+```
+
+idhh
+```{r}
+class(hhx_new$idhh)
+class(hhy_new$idhh)
+```
+
+```{r}
+hhy_new$idhh <- as.numeric(hhy_new$idhh)
+```
+
+jcardapp
+```{r}
+unique(hhx_new$jcardapp)
+unique(hhy_new$jcardapp)
+table(hhx_new$jcardapp)
+summary(hhx_new$jcardapp)
+summary(hhy_new$jcardapp)
+```
+
+coercing 0 to (0) No 0
+```{r}
+hhx_new$jcardapp <- recode(hhx_new$jcardapp, "0 = '(0) No 0'")
+hhx_new$jcardapp <- factor(hhx_new$jcardapp)
+table(hhx_new$jcardapp)
+sum(is.na(hhx_new$jcardapp))
+summary(hhx_new$jcardapp)
+```
+
+```{r}
+levels(hhx_new$jcardapp) <- levels(hhy_new$jcardapp)
+summary(hhx_new$jcardapp)
+```
+
+lc1
+```{r}
+unique(hhx_new$lc1)
+unique(hhy_new$lc1)
+table(hhx_new$lc1)
+summary(hhx_new$lc1)
+summary(hhy_new$lc1)
+```
+
+Remving 3
+```{r}
+hhx_new$lc1 <- recode(hhx_new$lc1,"3=NA" )
+#Checking again
+table(hhx_new$lc1)
+class(hhx_new$lc1)
+hhx_new$lc1 <- factor(hhx_new$lc1)
+summary(hhx_new$lc1)
+#Matching it with dat 2
+levels(hhx_new$lc1) <- levels(hhy_new$lc1)
+table(hhx_new$lc1)
+```
+
+tr1
+```{r}
+unique(hhx_new$tr1)
+unique(hhy_new$tr1)
+table(hhx_new$tr1)
+summary(hhx_new$tr1)
+summary(hhy_new$tr1)
+```
+
+removing 0
+```{r}
+hhx_new$tr1 <- recode(hhx_new$tr1,"0=NA" )
+#Checking again
+table(hhx_new$tr1)
+class(hhx_new$tr1)
+hhx_new$tr1 <- factor(hhx_new$tr1)
+summary(hhx_new$tr1)
+#Matching it with dat 2
+levels(hhx_new$tr1) <- levels(hhy_new$tr1)
+table(hhx_new$tr1)
+```
+
+wa11b
+```{r}
+unique(hhx_new$wa11b)
+unique(hhy_new$wa11b)
+table(hhx_new$wa11b)
+summary(hhx_new$wa11b)
+summary(hhy_new$wa11b)
+```
+
+removing 0
+```{r}
+hhx_new$wa11b <- recode(hhx_new$wa11b,"0=NA" )
+#Checking again
+table(hhx_new$wa11b)
+class(hhx_new$wa11b)
+hhx_new$wa11b <- factor(hhx_new$wa11b)
+summary(hhx_new$wa11b)
+#Matching it with dat 2
+levels(hhx_new$wa11b) <- levels(hhy_new$wa11b)
+table(hhx_new$wa11b)
+```
+
+wa2
+```{r}
+unique(hhx_new$wa2)
+unique(hhy_new$wa2)
+table(hhx_new$wa2)
+summary(hhx_new$wa2)
+summary(hhy_new$wa2)
+```
+Removing 3
+```{r}
+hhx_new$wa2 <- recode(hhx_new$wa2,"3=NA" )
+#Checking again
+table(hhx_new$wa2)
+class(hhx_new$wa2)
+hhx_new$wa2 <- factor(hhx_new$wa2)
+summary(hhx_new$wa2)
+#Matching it with dat 2
+levels(hhx_new$wa2) <- levels(hhy_new$wa2)
+table(hhx_new$wa2)
+```
+

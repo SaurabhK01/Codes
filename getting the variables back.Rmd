@@ -1,0 +1,32 @@
+---
+title: "Getting variables back"
+author: "Saurabh"
+date: "January 27, 2018"
+output: html_document
+---
+
+Checking consistency of data: Only CG variables
+```{r}
+hhx_small3 %>%
+  select(starts_with("CG")) %>%
+  sapply(FUN = levels)
+```
+
+```{r}
+hhy_small3 %>%
+  select(starts_with("CG")) %>%
+  sapply(FUN = levels)
+```
+
+```{r}
+hhy_small3 %>%
+  select(starts_with("CG")) %>%
+  sapply(gsub, ".*[a-z|A-Z]\\s", "") %>%
+  summary()
+   
+releveling <- function(x) {
+  gsub, ".*[a-z|A-Z]\\s", "", names(x))
+}
+
+```
+

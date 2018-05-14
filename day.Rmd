@@ -1,0 +1,78 @@
+---
+title: "Untitled"
+author: "Saurabh"
+date: "February 4, 2018"
+output: html_document
+---
+```{r}
+hh_nrega1 %>%
+  select(starts_with("n"), -nrega, -nteen, -starts_with("nf"), nadults, npersons, -nchild, -starts_with("nmarried")) 
+
+```
+
+```{r}
+hh2 %>%
+  filter(nrega == TRUE) %>%
+  select(starts_with("nwk"), npersons, wknrega)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+hh_nrega1 %>%
+  filter(copc <= 45000) %>%
+  ggplot(aes(y = copc, x = poor)) +
+  geom_violin() #+
+  #facet_grid(.~npersons)
+
+
+library(dplyr)
+hh_nrega1 %>%
+  filter(copc > 25000) %>%
+  count()
+
+
+#car::Boxplot(hh_nrega1$copc)
+```
+
+```{r}
+hh_nrega1 %>%
+  ggplot(aes(x = npersons, fill = poor)) +
+  geom_density(alpha = 0.8)
+
+
+```
+
+Creating a function for Desc statistics
+```{r}
+desc_stat <- function(x) {
+  return(c(avg = mean(x, na.rm = TRUE), median = median(x, na.rm = TRUE), IQR = IQR(x, na.rm = TRUE), sd. = sd(x, na.rm = TRUE), min = min(x, na.rm = TRUE), max = max(x, na.rm = TRUE), len = length(x), CV = 100*sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE), q = quantile(x, na.rm = TRUE), NAs = sum(is.na(x))))
+}
+```
+
+Checking the desc stats
+```{r}
+#Npersons
+desc_stat(hh_nrega1$npersons)
+```
+
+
+```{r}
+#Consumption
+desc_stat(hh_nrega1$copc)
+```
+
+```{r}
+#Consumption capped below 35000
+hh_nrega1 %>%
+  filter(copc <= 35000) %>%
+  select(copc) %>%
+  unlist() %>%
+  desc_stat()
+```
+
+```{r}
+#Assets
+desc_stat(hh_nrega1$assets)
+```
+

@@ -1,0 +1,71 @@
+---
+title: "Clustering"
+author: "Saurabh"
+date: "February 17, 2018"
+output: html_document
+---
+```{r}
+require(ggplot2)
+hhl %>%
+  select(copc, survey) %>%
+ #filter(copc < 250000) %>%
+  ggplot(aes(x= copc)) +
+  geom_histogram() +
+  facet_grid(~survey)
+```
+
+```{r}
+summary(hhy_new1$copc)
+```
+
+```{r}
+outlier2 <- car::Boxplot(hhy_new1$copc)
+```
+
+```{r}
+hhy_new1[outlier2,] %>%
+  select(copc, stateid, district)
+```
+
+```{r}
+hhy_new1 %>%
+  filter(is.na(copc)) %>%
+  select(copc, stateid, district, code)
+```
+
+```{r}
+hhy_new1[outlier2,] %>%
+  select(district, npersons, copc, starts_with("co"), -code, -ends_with("a"), -ends_with("d"), -ends_with("b")) 
+  
+```
+
+```{r}
+require(ggplot2)
+hhl %>%
+  filter(copc < 500000) %>%
+  ggplot(aes(x = assets, y = copc)) +
+  geom_jitter() +
+  facet_grid(~survey)
+```
+
+```{r}
+co_1 <- scale(co_data4)
+co_2 <- scale(co2_data)
+```
+
+```{r}
+require(fpc)
+cl_co1 <- kmeansruns(co_1, krange = 2:10)
+cl_co2 <- kmeansruns(co_2, krange = 2:10)
+```
+
+```{r}
+cl_co1$bestk
+cl_co2$bestk
+```
+
+```{r}
+co_1$seg <- cl_co1$cluster
+aggregate(cbind(co1a, co2a, co3a, co4a, co5a, co7a, co8a, co9a, co10a, co11a, co12a) ~ seg, data = co_1, FUN = mean)
+```
+

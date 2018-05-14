@@ -1,0 +1,340 @@
+---
+title: "WOE"
+author: "Saurabh"
+date: "March 9, 2018"
+output: html_document
+---
+```{r}
+install.packages("smbinning")
+library(smbinning)
+```
+
+```{r}
+hh_nrega <- import("hh_nrega.rda")
+glimpse(hh_nrega)
+```
+
+As the success qty was categorical it needs to be converted to numerical.
+After coercing to numeric, the new levels get converted to 0=1 and 1=2
+So coercing the values back to 0 and 1
+Note: Check class of success again, if numerical proceed to next step!
+```{r}
+hh_nrega$qty_success <- as.numeric(hh_nrega$qty_success)
+hh_nrega$qty_success <- ifelse(hh_nrega$qty_success == 1, 0, 1)
+```
+
+```{r}
+table(hh_nrega$qty_success)
+```
+
+```{r}
+state_table <- smbinning.factor(df = hh_nrega, y = "qty_success", x = "stateid", maxcat = 35)
+```
+
+
+```{r}
+state_table
+```
+
+
+Removing states with WOE = Inf
+```{r}
+hh_nrega3 <- hh_nrega[-which(hh_nrega$stateid %in% c("(11) Sikkim 11", "(14) Manipur 14", "(26) Dadra+Nagar Haveli 26")),]
+```
+
+For ease of use changing stateid to its bare minimum
+```{r}
+hh_nrega3$sid2 <- (gsub("^.*\\s", "", hh_nrega3$stateid))
+hh_nrega3$sid2 <- as.factor(hh_nrega3$sid2)
+```
+
+
+Rerunning the smbinning again
+```{r}
+state_table2 <- smbinning.factor(df = hh_nrega3, y = "qty_success", x = "sid2", maxcat = 35)
+state_table2
+```
+
+```{r}
+class(state_table2$ivtable)
+```
+
+```{r}
+ivtable1 <- tbl_df(state_table2$ivtable)
+ivtable1 <- ivtable1[-c(28, 29),]
+head(gsub("^=\\s\\'", "", ivtable1$Cutpoint))
+```
+
+
+
+
+```{r}
+ivtable1[order(ivtable1$WoE, decreasing = TRUE),]
+  
+```
+
+
+```{r}
+glimpse(ivtable1)
+```
+
+```{r}
+hh_nrega3$state_woe <- ifelse(hh_nrega3$sid2=="01", state_table2$ivtable$WoE[1:1],
+                        ifelse(hh_nrega3$sid2=="02", state_table2$ivtable$WoE[2:2],
+                         ifelse(hh_nrega3$sid2=="03", state_table2$ivtable$WoE[3:3],
+                            ifelse(hh_nrega3$sid2=="05", state_table2$ivtable$WoE[4:4],
+                             ifelse(hh_nrega3$sid2=="06", state_table2$ivtable$WoE[5:5],
+                                ifelse(hh_nrega3$sid2=="07", state_table2$ivtable$WoE[6:6],
+                                 ifelse(hh_nrega3$sid2=="08", state_table2$ivtable$WoE[7:7],
+                                  ifelse(hh_nrega3$sid2=="09", state_table2$ivtable$WoE[8:8],
+                                   ifelse(hh_nrega3$sid2=="10", state_table2$ivtable$WoE[9:9],
+                                     ifelse(hh_nrega3$sid2=="12", state_table2$ivtable$WoE[10:10],
+                                        ifelse(hh_nrega3$sid2=="13", state_table2$ivtable$WoE[11:11],
+                                          ifelse(hh_nrega3$sid2=="15", state_table2$ivtable$WoE[12:12],
+                                            ifelse(hh_nrega3$sid2=="16", state_table2$ivtable$WoE[13:13],
+                                             ifelse(hh_nrega3$sid2=="17", state_table2$ivtable$WoE[14:14],
+                                               ifelse(hh_nrega3$sid2=="18", state_table2$ivtable$WoE[15:15],
+                                                ifelse(hh_nrega3$sid2=="19", state_table2$ivtable$WoE[16:16],
+                                                  ifelse(hh_nrega3$sid2=="20", state_table2$ivtable$WoE[17:17],
+                                                   ifelse(hh_nrega3$sid2=="21", state_table2$ivtable$WoE[18:18],
+                                                     ifelse(hh_nrega3$sid2=="22", state_table2$ivtable$WoE[19:19],
+                                                       ifelse(hh_nrega3$sid2=="23", state_table2$ivtable$WoE[20:20],
+                                                        ifelse(hh_nrega3$sid2=="24", state_table2$ivtable$WoE[21:21],
+                                                          ifelse(hh_nrega3$sid2=="27", state_table2$ivtable$WoE[22:22],
+                                                            ifelse(hh_nrega3$sid2=="28", state_table2$ivtable$WoE[23:23],
+                                                              ifelse(hh_nrega3$sid2=="29", state_table2$ivtable$WoE[24:24],
+                                                                ifelse(hh_nrega3$sid2=="32", state_table2$ivtable$WoE[25:25],
+                                                                  ifelse(hh_nrega3$sid2=="33", state_table2$ivtable$WoE[26:26],
+                                                                    state_table2$ivtable$WoE[27:27]
+                                                                     ))))))))))))))))))))))))))
+```
+
+```{r}
+library(dplyr)
+library(rio)
+ed_data <- import("ed_data.xlsx")
+ed_data <- tbl_df(ed_data)
+glimpse(ed_data)
+
+require(data.table)
+
+setnames(ed_data, names(ed_data), c("code", "hhed5adult", "ed_adult", "hhed5f", "ed_f", "hhed5m", "ed_m"))
+glimpse(ed_data)
+```
+
+
+```{r}
+hh_nrega3 <- ed_data %>%
+  select(code, ed_adult, ed_f, ed_m) %>%
+  right_join(hh_nrega3, by = "code")
+
+hh_nrega3$ed_adult <- factor(hh_nrega3$ed_adult)
+hh_nrega3$ed_f <- factor(hh_nrega3$ed_f)
+hh_nrega3$ed_m <- factor(hh_nrega3$ed_m)
+```
+
+Remving NAs from the present data
+```{r}
+hh_nrega3$assets <- replace(hh_nrega3$assets, which(is.na(hh_nrega3$assets)), median(hh_nrega3$assets, na.rm = TRUE))
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$hq1)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$groups8)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$debt_p5)),]
+hh_nrega3 <- hh_nrega3[-which(is.na(hh_nrega3$hq1)),]
+hh_nrega3$poor <- replace(hh_nrega3$poor, which(is.na(hh_nrega3$poor)), "(1) poor 1")
+sapply(hh_nrega3[,c("groups8", "nwork", "assets", "ed_f", "ed_m", "income", "debt_p5", "hq1", "poor")], function(x) sum(is.na(x)))
+
+sapply(hh_nrega3[,c("groups8", "nwork", "assets", "ed_f", "ed_m", "income", "debt_p5", "hq1", "poor")], function(x) class(x))
+
+```
+
+
+
+```{r}
+table(hh_nrega3$groups8)
+table(hh_nrega3$ed_f)
+table(hh_nrega3$ed_m)
+table(hh_nrega3$debt_p5)
+table(hh_nrega3hq1)
+table(hh_nrega3$poor)
+```
+
+
+```{r}
+qty_mdl_blr3 <- glm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_nrega3, family = binomial)
+
+summary(qty_mdl_blr3)
+```
+
+
+
+```{r}
+hh_nrega3$predwoe1 <- fitted(qty_mdl_blr3)
+
+require(ROCR)
+pred_nregawoe1 <- prediction(hh_nrega3$predwoe1, hh_nrega3$qty_success)
+perf_nregawoe1 <- performance(pred_nregawoe1, "tpr", "fpr")
+plot(perf_nregawoe1)
+abline(0,1)
+
+auc_nregawoe1 <- performance(pred_nregawoe1, "auc")
+auc_nregawoe1@y.values
+```
+
+Statewoe Indipendent
+```{r}
+summary(ivtable1$WoE) 
+```
+
+```{r}
+hh_nrega3$woe_seg <- ifelse(hh_nrega3$state_woe < -0.0119, "low", ifelse(hh_nrega3$state_woe > 0.1129, "high", "medium"))
+```
+
+```{r}
+table(hh_nrega3$woe_seg)
+```
+
+```{r}
+hh_high <- hh_nrega3 %>%
+  filter(woe_seg == "high")
+
+hh_med <- hh_nrega3 %>%
+  filter(woe_seg == "medium")
+
+hh_low <- hh_nrega3 %>%
+  filter(woe_seg == "low")
+```
+
+```{r}
+high_blr <- glm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_high, family = binomial)
+
+
+
+med_blr <- glm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_med, family = binomial)
+
+
+
+low_blr <- glm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_low, family = binomial)
+
+summary(high_blr)
+summary(med_blr)
+summary(low_blr)
+```
+
+```{r}
+#For High
+hh_high$pred <- fitted(high_blr)
+
+pred_high <- prediction(hh_high$pred, hh_high$qty_success)
+perf_high <- performance(pred_high, "tpr", "fpr")
+plot(perf_high)
+abline(0,1)
+
+auc_high <- performance(pred_high, "auc")
+auc_high@y.values
+
+#For med
+hh_med$pred <- fitted(med_blr)
+
+pred_med <- prediction(hh_med$pred, hh_med$qty_success)
+perf_med <- performance(pred_med, "tpr", "fpr")
+plot(perf_med)
+abline(0,1)
+
+auc_med <- performance(pred_med, "auc")
+auc_med@y.values
+
+#For low
+hh_low$pred <- fitted(low_blr)
+
+pred_low <- prediction(hh_low$pred, hh_low$qty_success)
+perf_low <- performance(pred_low, "tpr", "fpr")
+plot(perf_low)
+abline(0,1)
+
+auc_low <- performance(pred_low, "auc")
+auc_low@y.values
+
+```
+
+Using Naive Bayes for continuous woe variable
+```{r}
+library(e1071)
+nb_woe <- naiveBayes(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_med, laplace = 2)
+
+nb_woe
+```
+
+```{r}
+nb_pred <- predict(nb_woe, hh_nrega3, type = "raw")
+head(nb_pred)
+#using2
+
+pred_nb_woe <- prediction(nb_pred[,2], hh_nrega3$qty_success)
+perf_nb_woe <- performance(pred_nb_woe, "tpr", "fpr")
+plot(perf_nb_woe)
+abline(0,1)
+
+auc_nb_woe <- performance(pred_nb_woe, "auc")
+auc_nb_woe@y.values
+```
+
+```{r}
+hh_nrega3$qty_success <- factor(hh_nrega3$qty_success)
+
+svm_woe <- svm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_nrega3, type = "C", probability = TRUE, kernel = "linear")
+svm_woe
+```
+
+```{r}
+pred_svm_woe <- predict(svm_woe, hh_nrega3[,c("qty_success", "state_woe", "groups8", "nwork", "assets", "ed_f", "ed_m", "income", "debt_p5", "hq1", "poor")], probability = TRUE)
+pred_svm_woe
+pred_svm_woe2 <-attr(pred_svm_woe, "probabilities")[,2]
+predictn_svm_woe <- prediction(pred_svm_woe2, hh_nrega3$qty_success)
+perf_svm_woe2 <- performance(predictn_svm_woe, "tpr", "fpr")
+
+plot(perf_svm_woe2)
+abline(0,1)
+
+auc_svm_woe <- performance(predictn_svm_woe, "auc")
+auc_svm_woe@y.values
+```
+
+#Now using the WOE main model
+```{r}
+as.data.frame(exp(coef(qty_mdl_blr3)))
+```
+
+Outlier
+```{r}
+library(car)
+influencePlot(qty_mdl_blr3)
+```
+
+Multicollinearity
+```{r}
+vif(qty_mdl_blr3)
+```
+
+```{r}
+hh_nrega3_1 <- hh_nrega3[-c(1324, 2535, 8708),]
+```
+
+```{r}
+qty_mdl_blr3_1 <- glm(qty_success ~ state_woe + groups8 + nwork + assets + ed_f + ed_m + income + debt_p5 + hq1 + poor, data = hh_nrega3_1, family = binomial)
+
+summary(qty_mdl_blr3_1)
+```
+
+```{r}
+hh_nrega3_1$predwoe1_1 <- fitted(qty_mdl_blr3_1)
+
+require(ROCR)
+pred_nregawoe1_1 <- prediction(hh_nrega3_1$predwoe1_1, hh_nrega3_1$qty_success)
+perf_nregawoe1_1 <- performance(pred_nregawoe1_1, "tpr", "fpr")
+plot(perf_nregawoe1_1)
+abline(0,1)
+
+auc_nregawoe1_1 <- performance(pred_nregawoe1_1, "auc")
+auc_nregawoe1_1@y.values
+```
+

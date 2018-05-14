@@ -1,0 +1,370 @@
+---
+title: "Interim_feedback"
+author: "Saurabh"
+date: "February 3, 2018"
+output: html_document
+---
+Number of districts per state
+```{r}
+hh_nrega2 %>%
+  group_by(stateid, distid) %>%
+  summarise(n_hh = n_distinct(distid)) %>%
+  summarise(nrega_dist = n()) %>%
+  left_join(hh_non1 %>%
+  group_by(stateid, distid) %>%
+  summarise(n_hh = n_distinct(distid)) %>%
+  summarise(non_nrega_dist = n()), by = "stateid")
+
+```
+What we don't know about the above districts is that are they the same districts distributed or are there two independent districts one with nrega and other with non_nrega
+
+HH Nrega vs Non_nrega
+```{r}
+hh_prop_st <- hh_nrega2 %>%
+  group_by(stateid) %>%
+  summarise(hh_nrega = n()) %>%
+    left_join(hh_non2 %>%
+  group_by(stateid) %>%
+  summarise(hh_non = n()), by = "stateid") %>%
+  mutate(prop = round(hh_nrega/(hh_nrega + hh_non), 2))
+hh_prop_st
+```
+
+```{r}
+hh_prop_st %>%
+  filter(prop > 0.30) %>%
+  summarise(nrega_obs = sum(hh_nrega), non_obs = sum(hh_non))
+```
+
+
+Checking ids
+```{r}
+hh_nrega2 %>%
+  select(sid, distid, psuid, hhid, hhsplitid, code)
+```
+
+```{r}
+unique(hh_nrega2$hhsplitid)
+unique(hh_non2$hhsplitid)
+unique(hh_nrega$hhsplitid)
+unique(hh_non$hhsplitid)
+```
+Though the codes uniqueness was checked we still have anomalies
+
+```{r}
+table(hh_nrega2$hhsplitid)
+table(hh_non2$hhsplitid)
+```
+
+```{r}
+code_final <- table(hh_nrega2$code)
+
+code_final <- tbl_df(code_final)
+
+head(code_final)
+```
+
+```{r}
+code_final %>%
+  filter(n == 1)
+```
+8850 codes are repeated just once, so even if they're anomalies there is chance that they're those entries which have split but the inital house is either untraceable in the database or hhsplitid is the classic example of an error entry.
+
+```{r}
+hhsplit2 <- hh_nrega2 %>%
+  filter(hhsplitid == 2) %>%
+  select(code, hhsplitid) 
+
+
+semi_join(hh_nrega2, hhsplit2, by = "code")
+```
+
+```{r}
+hh_nrega2 %>%
+  filter(code == 20901100) %>%
+  select (code, hhsplitid)
+```
+
+Checking the rest of the data too!!!
+```{r}
+table(hhx_new1$hhsplitid)
+length(hhx_new1$hhsplitid)
+table(hhy_new1$hhsplitid)
+length(hhy_new1$hhsplitid)
+table(hh_non2$hhsplitid)
+length(hh_non2$hhsplitid)
+table(hh_nrega2$hhsplitid)
+length(hh_nrega2$hhsplitid)
+```
+
+```{r}
+length(unique(hhx_new1$code))
+length(unique(hhy_new1$code))
+length(unique(hh_non2$code))
+length(unique(hh_nrega2$code))
+```
+The codes are non repetitive, though we have other than 1 hhsplitids for few cases. Maybe we can live with those 6, 14 observations!!!
+
+
+#Cluster Analysis
+Getting the data for cluster!!
+```{r}
+x_subset <- hhx_new1 %>%
+  select(copc, assets, fm20b, fm21a, fm22, fm23, fm24, fm26, fm27, fu1c, fu5b, fu6b, fu7b, fu8b, fu9b, fu10b) 
+
+x_subset  
+```
+Desc Analysis of data
+```{r}
+#copc
+desc_stat(x_subset$copc)
+desc_stat(x_subset$assets)
+```
+1.)Need to replace NA's from copc to something more better, before replacing them we need to check if there are any outliers...
+2.)Assets is good to go for next check as it has no NAs 
+
+COPC
+```{r}
+boxplot(x_subset$copc)
+```
+
+```{r}
+boxplot((x_subset[x_subset$copc < 10000,"copc"]))
+```
+
+```{r}
+require(car)
+require(dplyr)
+require(ggplot2)
+
+Boxplot(x_subset$copc)
+
+```
+Observing the outliers
+```{r}
+x_subset[c(26803, 7203, 4720, 1677, 10634, 13829, 1645, 28740, 29572, 21128),]
+```
+
+```{r}
+Boxplot(x_subset$assets)
+```
+
+Checking the distribution of copc
+```{r}
+x_subset %>%
+  filter(copc < 10000) %>%
+  ggplot(aes(x=copc)) +
+  geom_histogram()
+
+x_subset %>%
+  ggplot(aes(x=assets)) +
+  geom_histogram()
+```
+ The distribution is absolutely skewed with maximum of observations lying in the first quarter of copc values.
+What we need to see if the missing values and outliers come from specific state
+
+All Outliers
+```{r}
+hhx_new1 %>%
+  slice(c(26803, 7203, 4720, 1677, 10634, 13829, 1645, 28740, 29572, 21128)) %>%
+  select(copc, district, stateid, assets)
+```
+
+All Na's
+```{r}
+hhx_new1 %>%
+  slice(c(490, 491, 493, 494, 495, 500, 909, 1537, 2343, 2397, 2428,  2563, 2564, 2679,  3519, 3876, 3943, 4035, 4046, 4056, 5189,  5453, 5482, 5507, 5593, 5962, 6534, 8613, 10848, 13538, 18013, 18023, 18065, 18071, 18784, 19600, 20993, 21094, 27347)) %>%
+  select(copc, district, stateid, assets)
+```
+
+```{r}
+hhx_new1[-c(26803, 7203, 4720, 1677, 10634, 13829, 1645, 28740, 29572, 21128),] %>%
+  group_by(stateid) %>%
+  summarise(avg = mean(copc, na.rm = TRUE), median = median(copc, na.rm = TRUE), min = min(copc, na.rm = TRUE), max = max(copc, na.rm = TRUE))
+```
+Imputing NAs in accordance to state avg
+```{r}
+#NAs in Jammu
+x_subset[c(490, 491, 493, 494, 495, 500), "copc"] <- 1157.0
+
+#HP
+x_subset[c(909, 1537), "copc"] <- 998.0
+
+#Pb
+x_subset[c(2343, 2397, 2428,  2563, 2564, 2679), "copc"] <- 966.5
+
+#Hy
+x_subset[c(3519, 3876, 3943, 4035, 4046, 4056), "copc"] <- 866.5
+
+#Rj
+x_subset[c(5189,  5453, 5482, 5507, 5593, 5962, 6534), "copc"] <- 641.5
+
+#Up
+x_subset[8613, "copc"] <- 551.0
+
+#Tr
+x_subset[10848, "copc"] <- 740.0
+
+#Jh
+x_subset[13538, "copc"] <- 448.0
+
+#Mp
+x_subset[c(18013, 18023, 18065, 18071), "copc"] <- 440.0
+
+#Gj
+x_subset[c(18784, 19600), "copc"] <- 787.0
+
+#Mh
+x_subset[c(20993, 21094), "copc"] <- 653.0
+
+#Kr
+x_subset[27347, "copc"] <- 658.5
+
+any(is.na(x_subset$copc))
+```
+
+
+##Bivariate Analysis
+```{r}
+x_subset %>%
+  filter(copc < 12500) %>%
+  ggplot(aes(x = assets, y = copc)) +
+  geom_point() + geom_smooth(model = "lm")
+
+
+
+```
+
+```{r}
+which(x_subset$copc < 100)
+```
+
+```{r}
+x_subset[which(x_subset$copc < 100),]
+```
+
+```{r}
+hhx_new1 %>%
+  filter(copc < 100) %>%
+  select(stateid, district, copc, assets, npersons)
+  
+```
+
+Removing NA's from other data!
+```{r}
+x_subset[which(is.na(x_subset$fm20b)), "fm20b"] <- 0
+x_subset[which(is.na(x_subset$fm21a)), "fm21a"]<- 0
+x_subset[which(is.na(x_subset$fm22)),"fm22"] <- 0
+x_subset[which(is.na(x_subset$fm23)),"fm23"] <- 0
+x_subset[which(is.na(x_subset$fm24)),] <- 0
+x_subset[which(is.na(x_subset$fm26)),]  <- 0
+
+x_subset[which(),]
+is.na(x_subset$fm27) <- 0
+x_subset[which(),]
+is.na(x_subset$fu1c) <- 0
+x_subset[which(),]
+is.na(x_subset$fu5b) <- 0
+x_subset[which(),]
+is.na(x_subset$fu6b) <- 0
+x_subset[which(),]
+is.na(x_subset$fu7b) <- 0
+x_subset[which(),]
+is.na(x_subset$fu8b) <- 0
+x_subset[which(),]
+is.na(x_subset$fu9b) <- 0
+x_subset[which(),]
+is.na(x_subset$fu10b) <- 0
+
+replace_na <- function(x,y) {
+  for(i in x) {
+    y <- recode(x,"NA = '0'") 
+  }
+}
+library(car)
+replace_na(x_subset$fm21a, x_subset$fm21a)
+
+x_subset$fm21a <- recode(x_subset$fm21a, "NA = '0'")
+x_subset$fm22 <- recode(x_subset$fm22, "NA = '0'")
+x_subset$fm23 <- recode(x_subset$fm23, "NA = '0'")
+x_subset$fm24 <- recode(x_subset$fm24, "NA = '0'")
+x_subset$fm26 <- recode(x_subset$fm26, "NA = '0'")
+x_subset$fm27 <- recode(x_subset$fm27, "NA = '0'")
+x_subset$fu1c <- recode(x_subset$fu1c, "NA = '0'")
+x_subset$fu5b <- recode(x_subset$fu5b, "NA = '0'")
+x_subset$fu6b <- recode(x_subset$fu6b, "NA = '0'")
+x_subset$fu7b <- recode(x_subset$fu7b, "NA = '0'")
+x_subset$fu8b <- recode(x_subset$fu8b, "NA = '0'")
+x_subset$fu9b <- recode(x_subset$fu9b, "NA = '0'")
+x_subset$fu10b <- recode(x_subset$fu10b, "NA = '0'")
+```
+
+```{r}
+head(x_subset, 20)
+```
+
+```{r}
+library(fpc)
+scale_x <- scale(x_subset[,c(1,2)])
+
+cl_fpc <- kmeansruns(scale_x, krange = 2:10)
+cl <- kmeans(scale_x[,c(1:2)], 3)
+cl2 <- kmeans(scale_x, 4)
+```
+
+```{r}
+cl$size
+cl2$size
+```
+
+```{r}
+x_subset$seg <- cl$cluster
+
+x_subset %>%
+  mutate(fm_exp = fm20b + fm21a + fm22 + fm23 + fm24 + fm26 + fm27, fu_exp = fu1c + fu10b + fu5b + fu6b + fu7b + fu8b + fu9b) %>%
+  select(copc, assets, fm_exp, fu_exp, seg, -c(fm20b:fm27), -c(fu1c:fu10b)) %>%
+  group_by(seg) %>%
+  summarise(avg_copc = mean(copc), avg_assets = mean(assets), avg_fm = mean(fm_exp), avg_fu = mean(fu_exp))
+```
+
+```{r}
+hhx_cl <- hhx_new1 %>%
+  bind_cols(seg = cl$cluster)
+```
+
+```{r}
+table(hhx_cl$seg, hhx_cl$poor)
+```
+
+
+```{r}
+x_subset %>%
+  ggplot(aes(y=copc, x = 1)) + 
+  geom_boxplot() +
+  facet_grid(~seg)
+```
+
+
+```{r}
+x_subset2 <- x_subset[,-17]
+x_subset2$seg <- cl2$cluster
+
+x_subset2 %>%
+  mutate(fm_exp = fm20b + fm21a + fm22 + fm23 + fm24 + fm26 + fm27, fu_exp = fu1c + fu10b + fu5b + fu6b + fu7b + fu8b + fu9b) %>%
+  select(copc, assets, fm_exp, fu_exp, seg, -c(fm20b:fm27), -c(fu1c:fu10b)) %>%
+  group_by(seg) %>%
+  summarise(avg_copc = mean(copc), avg_assets = mean(assets), avg_fm = mean(fm_exp), avg_fu = mean(fu_exp))
+```
+
+```{r}
+boxplot(copc~seg, x_subset2)
+```
+
+```{r}
+hhx_cl$seg2 <- cl2$cluster
+```
+
+```{r}
+table(hhx_cl$seg2, hhx_cl$poor)
+```
+
